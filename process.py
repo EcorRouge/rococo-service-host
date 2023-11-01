@@ -20,7 +20,7 @@ class ServiceProcessor(BaseServiceProcessor):
         self.rabbitmq_queue_name = rabbitmq_queue_name
 
         try:
-            # Start listening to RabbitMQ and SQS simultaneously
+            # Start listening to RabbitMQ
             import concurrent.futures
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 executor.submit(self.listen_rabbitmq)
@@ -34,7 +34,7 @@ class ServiceProcessor(BaseServiceProcessor):
         self.aws_region = aws_region
         self.sqs_queue_url = sqs_queue_url
         try:
-            # Start listening to RabbitMQ and SQS simultaneously
+            # Start listening to SQS simultaneously
             import concurrent.futures
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 executor.submit(self.listen_sqs)
