@@ -76,30 +76,28 @@ class ServiceProcessor(BaseServiceProcessor):
 if __name__ == '__main__':
 
     import os
+    
+    try:
+        rabbitmq_host = os.environ.get('RABBITMQ_HOST')
+        rabbitmq_queue = os.environ.get('RABBITMQ_QUEUE')
+    except Exception as e:
+        logging.error("One of the rabbitmq-service env vars was not found. Needs RABBITMQ_HOST, and RABBITMQ_QUEUE")
+        logging.error(traceback.format_exc())
 
-    rabbitmq_host = os.environ.get('RABBITMQ_HOST',False)
-    if rabbitmq_host:
-        try:
-            rabbitmq_queue = os.environ.get('RABBITMQ_QUEUE')
-        except Exception as e:
-            logging.error("RABBITMQ_QUEUE env var was not found")
-            logging.error(traceback.format_exc())
+    try:
+        aws_access_key = os.environ.get('AWS_ACCESS_KEY')
+        aws_secret_key = os.environ.get('AWS_SECRET_KEY')
+        aws_region = os.environ.get('AWS_REGION')
+        sqs_queue_url = os.environ.get('SQS_QUEUE_URL')
+    except Exception:
+        logging.error("One of the sqs-service env vars was not found. Needs AWS_ACCESS_KEY, AWS_SECRET_KEY, AWS_REGION, and SQS_QUEUE_URL")
+        logging.error(traceback.format_exc())
 
-    aws_access_key = os.environ.get('AWS_ACCESS_KEY',False)
-    if aws_access_key:
-        try:
-            aws_secret_key = os.environ.get('AWS_SECRET_KEY')
-            aws_region = os.environ.get('AWS_REGION')
-            sqs_queue_url = os.environ.get('SQS_QUEUE_URL')
-        except Exception:
-            logging.error("One of the sqs-service env vars was not found. Needs AWS_ACCESS_KEY, AWS_SECRET_KEY, AWS_REGION, and SQS_QUEUE_URL")
-            logging.error(traceback.format_exc())
-
-
+    start_service = os.environ.get("START_SERVICE")
 
     a_service_started = False
 
-    if rabbitmq_host:
+    if start_service == "RABBITMQ":
         # Create instances of your ServiceProcessor class and use the configuration parameters
         try:
             rabbitmq_service_processor = ServiceProcessor()
@@ -109,7 +107,7 @@ if __name__ == '__main__':
             logging.error("Unexpected error when trying to initialize rabbitmq-service")
             logging.error(traceback.format_exc())
 
-    if aws_access_key:
+    if start_service == "SQS":
         # Create instances of your ServiceProcessor class and use the configuration parameters
         try:
             sqs_service_processor = ServiceProcessor()
