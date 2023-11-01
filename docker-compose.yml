@@ -1,0 +1,17 @@
+version: '3'
+services:
+  rabbitmq-service:
+    build: src
+    environment:
+      - RABBITMQ_START=TRUE
+      - RABBITMQ_HOST=your_rabbitmq_host
+      - RABBITMQ_QUEUE=your_queue_name
+
+  sqs-service:
+    build: src
+    environment:
+      - SQS_START=TRUE
+      - AWS_ACCESS_KEY=your_aws_access_key
+      - AWS_SECRET_KEY=your_aws_secret_key
+      - AWS_REGION=your_aws_region
+      - SQS_QUEUE_URL=your_sqs_queue_url
