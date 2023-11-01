@@ -84,18 +84,16 @@ if __name__ == '__main__':
     aws_region = os.environ.get('AWS_REGION')
     sqs_queue_url = os.environ.get('SQS_QUEUE_URL')
 
-    start_rabbitmq = os.environ.get("RABBITMQ_START")
-    start_sqs = os.environ.get("SQS_START")
 
     a_service_started = False
 
-    if start_rabbitmq == "START":
+    if rabbitmq_host:
         # Create instances of your ServiceProcessor class and use the configuration parameters
         rabbitmq_service_processor = ServiceProcessor()
         rabbitmq_service_processor.start_rabbit_mq_processor(rabbitmq_host, rabbitmq_queue)
         a_service_started = True
 
-    if start_sqs == "START":
+    if aws_access_key:
         # Create instances of your ServiceProcessor class and use the configuration parameters
         sqs_service_processor = ServiceProcessor()
         sqs_service_processor.start_sqs_processor(aws_access_key, aws_secret_key, aws_region, sqs_queue_url)
