@@ -20,15 +20,14 @@ Change these:
 
 
 ## build and run docker image
-How to run all services:
+RABBITMQ_HOST (optional, defaults to False = RabbitMQ Service not executing)
+if RABBITMQ_HOST is not provided, the env vars below are not required:
+RABBITMQ_PORT
+RABBITMQ_QUEUE
+RABBITMQ_USERNAME
+RABBITMQ_PASSWORD
+RABBITMQ_VIRTUAL_HOST (optional, defaults to '')
+RABBITMQ_NUM_THREADS (optional, defaults to 1)
 
-`docker-compose up -d --build`
-
-How to run RabbitMQ
-
-`docker-compose up -d rabbitmq-service --build`
-
-How to run Amazon SQS
-
-`docker-compose up -d sqs-service --build`
+`docker run --name=rococo-service-processor -e RABBITMQ_HOST=your_rabbit_host -e ....rest_of_env_vars`
 
