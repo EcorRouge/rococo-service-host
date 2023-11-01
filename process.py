@@ -11,6 +11,9 @@ class ServiceProcessor(BaseServiceProcessor):
     def __init__(self):
         pass
 
+    def process(self,message):
+        logging.info(f"Received message: {message}")
+
     def start_rabbit_mq_processor(self,rabbitmq_host,rabbitmq_queue_name):
         # RabbitMQ configuration
         self.rabbitmq_host = rabbitmq_host
@@ -38,11 +41,13 @@ class ServiceProcessor(BaseServiceProcessor):
         except KeyboardInterrupt:
             logging.info('Service interrupted. Exiting...')
 
-    def callback_rabbitmq(ch, method, properties, body):
-        logging.info(f"Received message from RabbitMQ: {body}")
+    def callback_rabbitmq(self,ch, method, properties, body):
+        self.process(body)
+        
 
-    def callback_sqs(message):
-        logging.info(f"Received message from SQS: {message.body}")
+    def callback_sqs(self,message):
+        self.process(message.body)
+        
 
     def listen_rabbitmq(self):
         connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.rabbitmq_host))
