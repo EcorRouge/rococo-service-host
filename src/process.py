@@ -2,6 +2,7 @@ from rococo.messaging.base import BaseServiceProcessor
 import pika
 import boto3
 import logging
+import traceback
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -76,28 +77,47 @@ if __name__ == '__main__':
 
     import os
 
-    rabbitmq_host = os.environ.get('RABBITMQ_HOST')
-    rabbitmq_queue = os.environ.get('RABBITMQ_QUEUE')
+    rabbitmq_host = os.environ.get('RABBITMQ_HOST',False)
+    if rabbitmq_host:
+        try:
+            rabbitmq_queue = os.environ.get('RABBITMQ_QUEUE')
+        except Exception as e:
+            logging.error("RABBITMQ_QUEUE env var was not found")
+            logging.error(traceback.format_exc())
 
-    aws_access_key = os.environ.get('AWS_ACCESS_KEY')
-    aws_secret_key = os.environ.get('AWS_SECRET_KEY')
-    aws_region = os.environ.get('AWS_REGION')
-    sqs_queue_url = os.environ.get('SQS_QUEUE_URL')
+    aws_access_key = os.environ.get('AWS_ACCESS_KEY',False)
+    if aws_access_key:
+        try:
+            aws_secret_key = os.environ.get('AWS_SECRET_KEY')
+            aws_region = os.environ.get('AWS_REGION')
+            sqs_queue_url = os.environ.get('SQS_QUEUE_URL')
+        except Exception:
+            logging.error("One of the sqs-service env vars was not found. Needs AWS_ACCESS_KEY, AWS_SECRET_KEY, AWS_REGION, and SQS_QUEUE_URL")
+            logging.error(traceback.format_exc())
+
 
 
     a_service_started = False
 
     if rabbitmq_host:
         # Create instances of your ServiceProcessor class and use the configuration parameters
-        rabbitmq_service_processor = ServiceProcessor()
-        rabbitmq_service_processor.start_rabbit_mq_processor(rabbitmq_host, rabbitmq_queue)
-        a_service_started = True
+        try:
+            rabbitmq_service_processor = ServiceProcessor()
+            rabbitmq_service_processor.start_rabbit_mq_processor(rabbitmq_host, rabbitmq_queue)
+            a_service_started = True
+        except Exception:
+            logging.error("Unexpected error when trying to initialize rabbitmq-service")
+            logging.error(traceback.format_exc())
 
     if aws_access_key:
         # Create instances of your ServiceProcessor class and use the configuration parameters
-        sqs_service_processor = ServiceProcessor()
-        sqs_service_processor.start_sqs_processor(aws_access_key, aws_secret_key, aws_region, sqs_queue_url)
-        a_service_started = True
+        try:
+            sqs_service_processor = ServiceProcessor()
+            sqs_service_processor.start_sqs_processor(aws_access_key, aws_secret_key, aws_region, sqs_queue_url)
+            a_service_started = True
+        except Exception:
+            logging.error("Unexpected error when trying to initialize sqs-service")
+            logging.error(traceback.format_exc())
 
     if not a_service_started:
         logging.warning("No service was set to start.")
