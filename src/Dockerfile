@@ -4,6 +4,9 @@ FROM python:3.10.4
 # Install Poetry
 RUN curl -sSL https://install.python-poetry.org | python3.10 -
 
+# Adjust the PATH to include the Poetry bin directory
+ENV PATH="${PATH}:/root/.local/bin"
+
 # Set the working directory to /app
 WORKDIR /app
 
