@@ -2,6 +2,9 @@
 A Docker-based host for services that process messages from a queue
 
 
+## Processing
+The docker image's main process is `process.py` which handles all message processing.
+
 ## Setup docker-compose variables
 Within docker-compose.yml you need to set up the variables for each service that's going to be used. 
 Change these:
@@ -17,9 +20,15 @@ Change these:
 
 
 ## build and run docker image
-How to run both services:
+How to run all services:
+
 `docker-compose up -d --build`
+
 How to run RabbitMQ
+
 `docker-compose up -d rabbitmq-service --build`
+
 How to run Amazon SQS
+
 `docker-compose up -d sqs-service --build`
+
