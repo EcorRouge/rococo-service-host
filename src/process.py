@@ -18,7 +18,6 @@ class LoggingServiceProcessor(BaseServiceProcessor):
 
 
 if __name__ == '__main__':
-    a_service_started = False
     messaging_type = os.environ.get("MESSAGING_TYPE")
     try:
         logging_service_processor = LoggingServiceProcessor()
