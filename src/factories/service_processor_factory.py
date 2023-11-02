@@ -1,6 +1,4 @@
 from rococo.messaging.base import BaseServiceProcessor
-from rococo.messaging.rabbitmq import RabbitMqConnection
-import os
 import logging
 
 # Configure logging
