@@ -20,6 +20,7 @@ class LoggingServiceProcessor(BaseServiceProcessor):
 def start_rabbit_mq_processor(rabbitmq_host,rabbitmq_port,rabbitmq_username,rabbitmq_password,rabbitmq_queue_name,rabbitmq_virtual_host,rabbitmq_num_threads):
     logging_service_processor = LoggingServiceProcessor()
     rabbitAdapter = RabbitMqConnection(rabbitmq_host,rabbitmq_port,rabbitmq_username,rabbitmq_password,rabbitmq_virtual_host)
+    rabbitAdapter.__enter__()
     rabbitAdapter.consume_messages(queue_name=rabbitmq_queue_name,callback_function=logging_service_processor.process,num_threads=rabbitmq_num_threads)
     return
 
