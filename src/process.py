@@ -11,7 +11,6 @@ logging.basicConfig(level=logging.INFO)
 
 
 if __name__ == '__main__':
-    messaging_type = os.environ.get("MESSAGING_TYPE")
     try:
         logging_service_processor = get_service_processor()
         queue_name = os.environ.get('QUEUE_NAME')
