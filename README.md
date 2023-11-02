@@ -26,7 +26,8 @@ RABBITMQ_NUM_THREADS (optional, defaults to 1)
 
 ```bash
 cd src
-docker run --name=rococo-service-processor --env-file ./.env
+docker build -t rococo-service-processor .
+docker run --env-file ./.env --name rococo-service-processor rococo-service-processor
 ```
 
 
