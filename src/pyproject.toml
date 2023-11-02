@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "rococo-service-host"
+name = "src"
 version = "0.1.0"
 description = ""
 authors = ["Matias Garafoni <matias.garafoni@gmail.com>"]
@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-rococo = "^0.1.12"
+rococo = "0.1.12"
 pytest = "^7.4.3"
 
 
