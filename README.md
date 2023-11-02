@@ -1,25 +1,17 @@
 # rococo-service-host
+
 A Docker-based host for services that process messages from a queue
 
 
 ## Processing
+
 The docker image's main process is `process.py` which handles all message processing.
 
-## Setup docker-compose variables
-Within docker-compose.yml you need to set up the variables for each service that's going to be used. 
-Change these:
 
-- RABBITMQ_HOST=your_rabbitmq_host
-- RABBITMQ_QUEUE=your_queue_name
+## set up the env file
 
-- AWS_ACCESS_KEY=your_aws_access_key
-- AWS_SECRET_KEY=your_aws_secret_key
-- AWS_REGION=your_aws_region
-- SQS_QUEUE_URL=your_sqs_queue_url
+See .env.example and make an .env file inside src folder
 
-
-
-## build and run docker image
 RABBITMQ_HOST (optional, defaults to False = RabbitMQ Service not executing)
 if RABBITMQ_HOST is not provided, the env vars below are not required:
 RABBITMQ_PORT
@@ -29,5 +21,30 @@ RABBITMQ_PASSWORD
 RABBITMQ_VIRTUAL_HOST (optional, defaults to '')
 RABBITMQ_NUM_THREADS (optional, defaults to 1)
 
-`docker run --name=rococo-service-processor -e RABBITMQ_HOST=your_rabbit_host -e ....rest_of_env_vars`
 
+## build and run docker image
+
+```bash
+cd src
+docker run --name=rococo-service-processor --env-file ./.env
+```
+
+
+## Tests
+
+using terminal inside the docker image:
+
+```bash
+poetry run pytest -vv
+```
+
+=========================================================== test session starts ===========================================================
+platform linux -- Python 3.10.4, pytest-7.4.3, pluggy-1.3.0 -- /root/.cache/pypoetry/virtualenvs/src-9TtSrW0h-py3.10/bin/python
+cachedir: .pytest_cache
+rootdir: /app
+plugins: anyio-4.0.0
+collected 1 item                                                                                                                          
+
+tests/test_message.py::test_rabbitmq_send_message PASSED                                                                            [100%]
+
+============================================================ 1 passed in 0.03s ============================================================
