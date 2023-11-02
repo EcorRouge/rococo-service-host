@@ -12,15 +12,6 @@ The docker image's main process is `process.py` which handles all message proces
 
 See .env.example and make an .env file inside src folder
 
-RABBITMQ_HOST (optional, defaults to False = RabbitMQ Service not executing)
-if RABBITMQ_HOST is not provided, the env vars below are not required:
-RABBITMQ_PORT
-RABBITMQ_QUEUE
-RABBITMQ_USERNAME
-RABBITMQ_PASSWORD
-RABBITMQ_VIRTUAL_HOST (optional, defaults to '')
-RABBITMQ_NUM_THREADS (optional, defaults to 1)
-
 
 ## build and run docker image
 
