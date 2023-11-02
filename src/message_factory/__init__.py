@@ -1,1 +1,0 @@
-from .messaging_factory import get_message_adapter

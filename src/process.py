@@ -1,5 +1,5 @@
 from rococo.messaging.base import BaseServiceProcessor
-from message_factory import get_message_adapter
+from processor_factory import get_message_adapter
 import os
 import logging
 import traceback
@@ -17,23 +17,13 @@ class LoggingServiceProcessor(BaseServiceProcessor):
 
 
 
-def start_rabbit_mq_processor():
-    logging_service_processor = LoggingServiceProcessor()
-    rabbitmq_queue = os.environ.get('RABBITMQ_QUEUE')
-    rabbitmq_num_threads = int(os.environ.get('RABBITMQ_NUM_THREADS',1))
-
-    rabbit_adapter = get_message_adapter()
-
-    rabbit_adapter.consume_messages(queue_name=rabbitmq_queue,callback_function=logging_service_processor.process,num_threads=rabbitmq_num_threads)
-    return
-
 if __name__ == '__main__':
+    a_service_started = False
+    messaging_type = os.environ.get("MESSAGING_TYPE")
     try:
-        start_rabbit_mq_processor()
-        a_service_started = True
+        logging_service_processor = LoggingServiceProcessor()
+        queue_name = os.environ.get('QUEUE_NAME')
+        message_adapter = get_message_adapter()
+        message_adapter.consume_messages(queue_name=queue_name,callback_function=logging_service_processor.process)
     except Exception:
         logging.error(traceback.format_exc())
-
-    
-    if not a_service_started:
-        logging.warning("No service was set to start.")

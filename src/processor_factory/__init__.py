@@ -1,0 +1,1 @@
+from .processor_factory import get_message_adapter
