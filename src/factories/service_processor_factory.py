@@ -13,6 +13,9 @@ class LoggingServiceProcessor(BaseServiceProcessor):
         logging.info(f"Received message: {message}")
 
 def get_service_processor() -> BaseServiceProcessor:
+    service_processor = BaseServiceProcessor()
     # hard coding for now
-    service_processor = LoggingServiceProcessor()
+    if True:
+        # if condition for LoggingServiceProcessor, then:
+        service_processor = LoggingServiceProcessor()
     return service_processor
