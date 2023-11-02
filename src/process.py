@@ -1,4 +1,3 @@
-from rococo.messaging.base import BaseServiceProcessor
 from factories import get_message_adapter, get_service_processor
 import os
 import logging
