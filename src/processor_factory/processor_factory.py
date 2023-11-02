@@ -5,7 +5,7 @@ import os
 def get_message_adapter() -> MessageAdapter:
     adapter = MessageAdapter()
     if os.environ.get("MESSAGING_TYPE") == "RABBITMQ":    
-        host = os.environ.get('HOST',False)
+        host = os.environ.get('HOST')
         port = os.environ.get('PORT')
         username = os.environ.get('USERNAME')
         password = os.environ.get('PASSWORD')
