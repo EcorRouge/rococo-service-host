@@ -23,6 +23,8 @@ def read_project_version(project_dir):
 
 def get_required_env():
     try:
+        if not os.environ.get("MESSAGING_TYPE",False):
+            raise ValueError("Unexpected MESSAGE_TYPE is missing.")
         if os.environ.get("MESSAGING_TYPE") not in ["RABBITMQ","SQS"]:
             raise ValueError("Unexpected MESSAGE_TYPE value.")
         if os.environ.get("MESSAGING_TYPE") == "RABBITMQ":
