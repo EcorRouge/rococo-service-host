@@ -10,6 +10,7 @@ from rococo.messaging.base import BaseServiceProcessor
 logging.basicConfig(level=logging.INFO)
 
 # this will go elsewhere
+# pylint: disable=too-few-public-methods
 class LoggingServiceProcessor(BaseServiceProcessor):
     """
     Demo class based on BaseServiceProcessor
