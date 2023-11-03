@@ -8,11 +8,12 @@ import traceback
 logging.basicConfig(level=logging.INFO)
 
 
-
-
 if __name__ == '__main__':
     try:
         read_project_version(project_dir=os.path.dirname(os.path.abspath(__file__)))
+        if not get_required_env():
+            raise Exception("There was a problem reading .env file. Exiting program.")
+
         service_processor = get_service_processor()
         queue_name = os.environ.get('QUEUE_NAME')
         message_adapter = get_message_adapter()
