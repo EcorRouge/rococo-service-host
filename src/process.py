@@ -1,3 +1,7 @@
+"""
+Processor for services
+"""
+
 import os
 import sys
 import logging
@@ -24,4 +28,3 @@ if __name__ == '__main__':
     message_adapter = get_message_adapter()
     message_adapter.consume_messages(queue_name=queue_name,
                                         callback_function=service_processor.process)
-

@@ -1,3 +1,7 @@
+"""
+Service processor handling
+"""
+
 import logging
 
 from rococo.messaging.base import BaseServiceProcessor

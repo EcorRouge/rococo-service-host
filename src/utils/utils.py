@@ -1,3 +1,7 @@
+"""
+Pack of uilitary functions for main loop
+"""
+
 import os
 import re
 import logging

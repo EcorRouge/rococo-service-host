@@ -1,3 +1,7 @@
+"""
+Message adapter handling
+"""
+
 import os
 
 from rococo.messaging.base import MessageAdapter
