@@ -1,21 +1,24 @@
-from rococo.messaging.base import BaseServiceProcessor
 import logging
+
+from rococo.messaging.base import BaseServiceProcessor
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
 # this will go elsewhere
 class LoggingServiceProcessor(BaseServiceProcessor):
+    """
+    Demo class based on BaseServiceProcessor
+    """
     def __init__(self):
         pass
 
     def process(self,message):
-        logging.info(f"Received message: {message}")
+        logging.info('Received message: %s', message)
 
 def get_service_processor() -> BaseServiceProcessor:
-    service_processor = BaseServiceProcessor()
-    # hard coding for now
-    if True:
-        # if condition for LoggingServiceProcessor, then:
-        service_processor = LoggingServiceProcessor()
-    return service_processor
+    """
+    Returns a service processor
+    Hardcoded right now to return a LoggingServiceProcessor
+    """
+    return LoggingServiceProcessor()

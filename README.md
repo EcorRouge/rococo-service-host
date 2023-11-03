@@ -20,9 +20,13 @@ cd src
 docker build -t rococo-service-processor .
 docker run --env-file ./.env --name rococo-service-processor rococo-service-processor
 ```
+## Linting
 
+```bash
+poetry run pylint src
+```
 
-## Tests
+## Tests (deprecated - tests are not copied to the docker image - WIP)
 
 using terminal inside the docker image:
 
