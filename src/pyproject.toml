@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-rococo = "0.1.12"
+rococo = "^0.1.13"
 pytest = "^7.4.3"
 
 
