@@ -49,7 +49,7 @@ def get_required_env():
             if os.environ.get("RABBITMQ_NUM_THREADS",False):
                 if int(os.environ.get("RABBITMQ_NUM_THREADS"))<=0:
                     raise ValueError("RABBITMQ_NUM_THREADS cant be lower than 1")
-    except Exception as e:
+    except ValueError as e:
         logging.error(traceback.format_exc())
         logging.error(e)
         return False
