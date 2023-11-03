@@ -1,4 +1,5 @@
 from factories import get_message_adapter, get_service_processor
+from utils import read_project_version, get_required_env
 import os
 import logging
 import traceback
@@ -11,6 +12,7 @@ logging.basicConfig(level=logging.INFO)
 
 if __name__ == '__main__':
     try:
+        read_project_version(project_dir=os.path.dirname(os.path.abspath(__file__)))
         service_processor = get_service_processor()
         queue_name = os.environ.get('QUEUE_NAME')
         message_adapter = get_message_adapter()
