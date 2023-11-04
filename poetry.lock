@@ -315,13 +315,13 @@ six = ">=1.5"
 
 [[package]]
 name = "rococo"
-version = "0.1.12"
+version = "0.1.13"
 description = "A Python library to help build things the way we want them built"
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "rococo-0.1.12-py3-none-any.whl", hash = "sha256:ae85921277245dfcf8f29aa57cccde401ae3703634b58186f39e7dbab9241e15"},
-    {file = "rococo-0.1.12.tar.gz", hash = "sha256:3f9420a30a417a06131809c26a2ba56ae09448a691b0f37ff65c90cd5a68303b"},
+    {file = "rococo-0.1.13-py3-none-any.whl", hash = "sha256:532fb23146b4dabcb99c698f6c26dec86db45c2df5b9b4abcabdfdb6665d5622"},
+    {file = "rococo-0.1.13.tar.gz", hash = "sha256:bc14f0cb5a582c81a5c5677f1fd1f730a74b8eff343dc534c8a76acae7533ce0"},
 ]
 
 [package.dependencies]
@@ -504,4 +504,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "50c358589ad12cfe75e978c18c9ef2c767f4020aae216a05e7e81bafe6340002"
+content-hash = "701f16c8cda573858a7771c386edd41ae8428f61365e5cc6bc4e4d2da313966e"
