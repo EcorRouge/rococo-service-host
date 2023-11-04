@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 if __name__ == '__main__':
     try:
         service_processor = get_service_processor()
-        queue_name = os.environ.get('QUEUE_NAME')
+        queue_name = os.environ.get('RABBITMQ_QUEUE')
         message_adapter = get_message_adapter()
         message_adapter.consume_messages(queue_name=queue_name,callback_function=service_processor.process)
     except Exception:
