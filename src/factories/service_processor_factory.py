@@ -7,11 +7,12 @@ logging.basicConfig(level=logging.INFO)
 
 # this will go elsewhere
 class LoggingServiceProcessor(BaseServiceProcessor):
-    def process(self):
-        pass
+
+    def process(self, message):
+        logging.info(f"Received message: {message}")
 
     def __init__(self):
-        pass
+        super().__init__()
 
 
 def get_service_processor() -> BaseServiceProcessor:
