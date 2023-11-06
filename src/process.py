@@ -7,8 +7,8 @@ import sys
 import logging
 import traceback
 
-from .factories import get_message_adapter, get_service_processor
-from .utils import read_project_version, get_required_env
+from factories import get_message_adapter, get_service_processor
+from utils import read_project_version, get_required_env
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
