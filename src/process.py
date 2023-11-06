@@ -16,7 +16,11 @@ logging.basicConfig(level=logging.INFO)
 
 if __name__ == '__main__':
     try:
-        read_project_version(project_dir=os.path.dirname(os.path.abspath(__file__)))
+        # Get the current directory of the script
+        current_directory = os.path.dirname(os.path.abspath(__file__))
+        # Navigate to the parent directory (project directory)
+        parent_directory = os.path.dirname(current_directory)
+        read_project_version(project_dir=parent_directory)
         if not get_required_env():
             raise ValueError("There was a problem reading .env file. Exiting program.")
     except ValueError:
