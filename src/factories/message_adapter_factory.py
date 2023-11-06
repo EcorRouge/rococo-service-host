@@ -17,7 +17,8 @@ def get_message_adapter() -> MessageAdapter:
         username = os.environ.get('USERNAME')
         password = os.environ.get('PASSWORD')
         rabbitmq_virtual_host = os.environ.get('RABBITMQ_VIRTUAL_HOST','')
-        with RabbitMqConnection(host, port, username, password, rabbitmq_virtual_host) as adapter:
-            return adapter
+        adapter = RabbitMqConnection(host, port, username, password, rabbitmq_virtual_host)
+        adapter.__enter__()
+        return adapter
     else:
         return MessageAdapter()
