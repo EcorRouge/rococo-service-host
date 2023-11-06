@@ -21,7 +21,7 @@ def test_rabbitmq_send_message():
 
     channel = connection.channel()
 
-    # Declare a queue named 'test_queue'
+    # Declare a queue
     channel.queue_declare(queue=os.environ.get("RABBITMQ_QUEUE"), durable=True)
 
     # Publish a message to the queue
