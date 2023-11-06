@@ -1,13 +1,20 @@
 import os
 
 from rococo.messaging import BaseServiceProcessor
-from service_processors.service_processors import LoggingServiceProcessor
+from .config_factory import Config
 
+def get_service_processor(config:Config) -> BaseServiceProcessor:
+    try:
+        # Dynamically import the module
+        module = __import__("service_processors.service_processors")
 
-def get_service_processor() -> BaseServiceProcessor:
-    service_processor = BaseServiceProcessor()
-    processor_type = os.environ.get("PROCESSOR_TYPE")
-    if processor_type == "LoggingServiceProcessor":
-        # if condition for LoggingServiceProcessor, then:
-        service_processor = LoggingServiceProcessor()
-    return service_processor
+        # Access the class from the imported module
+        dynamic_class = getattr(module,config.processor_type)
+
+        # Create an instance of the dynamic class with the specified parameters
+        instance = dynamic_class(*config.service_constructor_params)
+        return instance
+    except ImportError:
+        print(f"Error: Module 'service_processors.service_processors' not found.")
+    except AttributeError:
+        print(f"Error: Class '{config.processor_type}' not found in module 'service_processors.service_processors'.")
