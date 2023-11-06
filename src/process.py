@@ -3,17 +3,21 @@ import os
 import logging
 import traceback
 
+from factories import Config
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-
-
-
 if __name__ == '__main__':
     try:
-        service_processor = get_service_processor()
-        queue_name = os.environ.get('RABBITMQ_QUEUE')
-        message_adapter = get_message_adapter()
-        message_adapter.consume_messages(queue_name=queue_name,callback_function=service_processor.process)
+        config = Config()
+        service_processor = get_service_processor(config)
+        message_adapter = get_message_adapter(config)
+        if config.messaging_type == "RabbitMqConnection":
+            queue_name = os.environ.get('RABBITMQ_QUEUE')
+            message_adapter.consume_messages(queue_name=queue_name,callback_function=service_processor.process,num_threads=config.num_threads)
+        else:
+            logging.error("Invalid config.messaging_type {}".format(config.messaging_type))
+            
     except Exception:
         logging.error(traceback.format_exc())
