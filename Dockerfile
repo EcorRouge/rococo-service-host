@@ -17,4 +17,4 @@ COPY . /app
 RUN poetry install
 
 # Run service.py when the container launches
-CMD ["poetry", "run", "python", "process.py"]
+CMD ["poetry", "run", "python", "src/process.py"]

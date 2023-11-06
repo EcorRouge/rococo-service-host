@@ -9,6 +9,7 @@ from rococo.messaging.base import BaseServiceProcessor
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
+
 # this will go elsewhere
 # pylint: disable=too-few-public-methods
 class LoggingServiceProcessor(BaseServiceProcessor):
@@ -20,6 +21,10 @@ class LoggingServiceProcessor(BaseServiceProcessor):
 
     def process(self,message):
         logging.info('Received message: %s', message)
+
+    def __init__(self):
+        super().__init__()
+
 
 def get_service_processor() -> BaseServiceProcessor:
     """
