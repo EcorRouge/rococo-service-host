@@ -1,19 +1,24 @@
-import pika
+"""
+Test module
+"""
 import json
-import os
-
+import pika
+from rococo.config import BaseConfig
 
 def test_rabbitmq_send_message():
-    # Establish a connection to RabbitMQ server
+    """
+    Establish a connection to RabbitMQ server
+    """
+    config = BaseConfig()
 
     credentials = pika.PlainCredentials(
-        username=os.environ.get("RABBITMQ_DEFAULT_USER"),
-        password=os.environ.get("RABBITMQ_DEFAULT_PASS")
+        username=config.get_env_var("RABBITMQ_DEFAULT_USER"),
+        password=config.get_env_var("RABBITMQ_DEFAULT_PASS")
     )
     parameters = pika.ConnectionParameters(
-        host=os.environ.get("RABBITMQ_HOST"),
-        port=int(os.environ.get("RABBITMQ_PORT")),
-        virtual_host=os.environ.get("RABBITMQ_VIRTUAL_HOST"),
+        host=config.get_env_var("RABBITMQ_HOST"),
+        port=int(config.get_env_var("RABBITMQ_PORT")),
+        virtual_host=config.get_env_var("RABBITMQ_VIRTUAL_HOST"),
         credentials=credentials
     )
 
@@ -22,11 +27,11 @@ def test_rabbitmq_send_message():
     channel = connection.channel()
 
     # Declare a queue
-    channel.queue_declare(queue=os.environ.get("RABBITMQ_QUEUE"), durable=True)
+    channel.queue_declare(queue=config.get_env_var("RABBITMQ_QUEUE"), durable=True)
 
     # Publish a message to the queue
     channel.basic_publish(exchange='',
-                          routing_key=os.environ.get("RABBITMQ_QUEUE"),
+                          routing_key=config.get_env_var("RABBITMQ_QUEUE"),
                           body=json.dumps({"message": "Hello, RabbitMQ!"}))
 
     print("Message sent to RabbitMQ.")
