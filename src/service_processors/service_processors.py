@@ -9,8 +9,8 @@ from rococo.messaging import BaseServiceProcessor
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-
-# this will go elsewhere
+# This is an example implementation of a BaseServiceProcessor class.
+# This should be done in the child image
 class LoggingServiceProcessor(BaseServiceProcessor): # pylint: disable=R0903
     """
     Service processor that logs messages
