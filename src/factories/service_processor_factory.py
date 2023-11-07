@@ -1,11 +1,11 @@
 """
 Service processor factory
 """
-
+from typing import Optional
 from rococo.messaging import BaseServiceProcessor
 from .config_factory import Config
 
-def get_service_processor(config:Config) -> BaseServiceProcessor:
+def get_service_processor(config:Config) -> Optional[BaseServiceProcessor]:
     """
     Dynamically imports the service processor
     """
@@ -23,3 +23,4 @@ def get_service_processor(config:Config) -> BaseServiceProcessor:
         print("Error: Module 'service_processors.service_processors' not found.")
     except AttributeError:
         print(f"Error: Class '{config.processor_type}' not found in module 'service_processors.service_processors'.")
+    return None
