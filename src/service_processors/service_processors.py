@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 # this will go elsewhere
-class LoggingServiceProcessor(BaseServiceProcessor):
+class LoggingServiceProcessor(BaseServiceProcessor): # pylint: disable=R0903
     """
     Service processor that logs messages
     """
