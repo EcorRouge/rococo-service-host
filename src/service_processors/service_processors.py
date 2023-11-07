@@ -1,3 +1,7 @@
+"""
+Base example of a service processor
+"""
+
 import logging
 from rococo.messaging import BaseServiceProcessor
 
@@ -8,9 +12,11 @@ logging.basicConfig(level=logging.INFO)
 
 # this will go elsewhere
 class LoggingServiceProcessor(BaseServiceProcessor):
-
+    """
+    Service processor that logs messages
+    """
     def process(self, message):
-        logging.info(f"Received message: {message}")
+        logging.info("Received message: %s",message)
 
     def __init__(self):
-        super().__init__()
+        pass

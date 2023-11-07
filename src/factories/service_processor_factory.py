@@ -1,9 +1,14 @@
-import os
+"""
+Service processor factory
+"""
 
 from rococo.messaging import BaseServiceProcessor
 from .config_factory import Config
 
 def get_service_processor(config:Config) -> BaseServiceProcessor:
+    """
+    Dynamically imports the service processor
+    """
     try:
         # Dynamically import the module
         module = __import__("service_processors.service_processors")
@@ -15,6 +20,6 @@ def get_service_processor(config:Config) -> BaseServiceProcessor:
         instance = dynamic_class(*config.service_constructor_params)
         return instance
     except ImportError:
-        print(f"Error: Module 'service_processors.service_processors' not found.")
+        print("Error: Module 'service_processors.service_processors' not found.")
     except AttributeError:
         print(f"Error: Class '{config.processor_type}' not found in module 'service_processors.service_processors'.")

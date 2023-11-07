@@ -2,8 +2,6 @@
 Message adapter handling
 """
 
-import os
-
 from rococo.messaging.base import MessageAdapter
 from rococo.messaging.rabbitmq import RabbitMqConnection
 from .config_factory import Config
