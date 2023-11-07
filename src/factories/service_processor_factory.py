@@ -22,5 +22,6 @@ def get_service_processor(config:Config) -> Optional[BaseServiceProcessor]:
     except ImportError:
         print("Error: Module 'service_processors.service_processors' not found.")
     except AttributeError:
-        print(f"Error: Class '{config.processor_type}' not found in module 'service_processors.service_processors'.")
+        print("Error: Class '%s' not found in module 'service_processors.service_processors'.",
+              config.processor_type)
     return None
