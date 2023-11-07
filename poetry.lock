@@ -315,19 +315,34 @@ files = [
 six = ">=1.5"
 
 [[package]]
+name = "python-dotenv"
+version = "1.0.0"
+description = "Read key-value pairs from a .env file and set them as environment variables"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "python-dotenv-1.0.0.tar.gz", hash = "sha256:a8df96034aae6d2d50a4ebe8216326c61c3eb64836776504fcca410e5937a3ba"},
+    {file = "python_dotenv-1.0.0-py3-none-any.whl", hash = "sha256:f5971a9226b701070a4bf2c38c89e5a3f0d64de8debda981d1db98583009122a"},
+]
+
+[package.extras]
+cli = ["click (>=5.0)"]
+
+[[package]]
 name = "rococo"
-version = "0.1.17"
+version = "0.1.18"
 description = "A Python library to help build things the way we want them built"
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "rococo-0.1.17-py3-none-any.whl", hash = "sha256:dc34dc72c995d2454efac24dd06b381c154086f68a10dc790ce6c38edbf4128d"},
-    {file = "rococo-0.1.17.tar.gz", hash = "sha256:6051e4c7b6cc491882f4a796fa4d2de22b96ce9ac8672c6984ad100dab12ffc2"},
+    {file = "rococo-0.1.18-py3-none-any.whl", hash = "sha256:2717182b7eb0f47d3fa9315ea543f418ec6bbb35540d3f788aeb9995037c8ccd"},
+    {file = "rococo-0.1.18.tar.gz", hash = "sha256:9b5ac787cfc6d9dd7588968fc019fea4811960856566769f3c836e4275447219"},
 ]
 
 [package.dependencies]
 boto3 = "1.28.55"
 pika = "1.3.2"
+python-dotenv = "1.0.0"
 surrealdb = "0.3.1"
 
 [[package]]
@@ -505,4 +520,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "43c0ed570c19b7d00ec2f7627dd05b7613d2a98b3ae91a408196285ef79ec75a"
+content-hash = "9923a6f4d2200cd65a46494d64803b81f3ee5e896bdd57cf1d787f82d71e02c3"
