@@ -1,17 +1,17 @@
-import os
-from rococo.messaging import MessageAdapter, RabbitMqConnection
+"""
+Message adapter handling
+"""
 
+from rococo.messaging.base import MessageAdapter
+from rococo.messaging.rabbitmq import RabbitMqConnection
+from .config_factory import Config
 
-def get_message_adapter() -> MessageAdapter:
-    adapter = MessageAdapter()
-    if os.environ.get("MESSAGING_TYPE") == "RABBITMQ":
-        host = os.environ.get('RABBITMQ_HOST')
-        port: int = int(os.environ.get('RABBITMQ_PORT'))
-        username = os.environ.get('RABBITMQ_DEFAULT_USER')
-        password = os.environ.get('RABBITMQ_DEFAULT_PASS')
-        rabbitmq_virtual_host = os.environ.get('RABBITMQ_VIRTUAL_HOST', '')
+def get_message_adapter(config:Config) -> MessageAdapter:
+    """
+    Returns a message adapter depending on MESSAGING_TYPE env var
+    """
+    if config.messaging_type == "RabbitMqConnection":
+        adapter = RabbitMqConnection(*config.messaging_constructor_params)
+        return adapter
 
-        adapter = RabbitMqConnection(host, port, username, password, rabbitmq_virtual_host)
-
-    adapter.__enter__()
-    return adapter
+    return MessageAdapter()

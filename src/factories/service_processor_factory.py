@@ -1,24 +1,27 @@
+"""
+Service processor factory
+"""
+from typing import Optional
 from rococo.messaging import BaseServiceProcessor
-import logging
+from .config_factory import Config
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+def get_service_processor(config:Config) -> Optional[BaseServiceProcessor]:
+    """
+    Dynamically imports the service processor
+    """
+    try:
+        # Dynamically import the module
+        module = __import__("service_processors.service_processors")
 
+        # Access the class from the imported module
+        dynamic_class = getattr(module,config.processor_type)
 
-# this will go elsewhere
-class LoggingServiceProcessor(BaseServiceProcessor):
-
-    def process(self, message):
-        logging.info(f"Received message: {message}")
-
-    def __init__(self):
-        super().__init__()
-
-
-def get_service_processor() -> BaseServiceProcessor:
-    service_processor = BaseServiceProcessor()
-    # hard coding for now
-    if True:
-        # if condition for LoggingServiceProcessor, then:
-        service_processor = LoggingServiceProcessor()
-    return service_processor
+        # Create an instance of the dynamic class with the specified parameters
+        instance = dynamic_class(*config.service_constructor_params)
+        return instance
+    except ImportError:
+        print("Error: Module 'service_processors.service_processors' not found.")
+    except AttributeError:
+        print("Error: Class '%s' not found in module 'service_processors.service_processors'.",
+              config.processor_type)
+    return None
