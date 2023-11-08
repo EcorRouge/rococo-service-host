@@ -12,7 +12,6 @@ def get_message_adapter(config:Config) -> MessageAdapter:
     """
     if config.messaging_type == "RabbitMqConnection":
         adapter = RabbitMqConnection(*config.messaging_constructor_params)
-        adapter.__enter__()
         return adapter
-    else:
-        return MessageAdapter()
+
+    return MessageAdapter()

@@ -22,14 +22,14 @@ if __name__ == '__main__':
         if not config.validate_env_vars():
             raise ValueError("Invalid env configuration. Exiting program.")
         service_processor = get_service_processor(config)
-        message_adapter = get_message_adapter(config)
-        if config.messaging_type == "RabbitMqConnection":
-            queue_name = config.get_env_var('RABBITMQ_QUEUE')
-            message_adapter.consume_messages(queue_name=queue_name,
-                                             callback_function=service_processor.process,
-                                             num_threads=config.num_threads)
-        else:
-            logging.error("Invalid config.messaging_type %s",config.messaging_type)
+        with get_message_adapter(config) as message_adapter:
+            if config.messaging_type == "RabbitMqConnection":
+                queue_name = config.get_env_var('RABBITMQ_QUEUE')
+                message_adapter.consume_messages(queue_name=queue_name,
+                                                callback_function=service_processor.process,
+                                                num_threads=config.num_threads)
+            else:
+                logging.error("Invalid config.messaging_type %s",config.messaging_type)
 
     except Exception as e: # pylint: disable=W0718
         logging.error(traceback.format_exc())
