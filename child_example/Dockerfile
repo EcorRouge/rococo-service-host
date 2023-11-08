@@ -5,7 +5,7 @@ FROM rococo_service_processor:latest
 WORKDIR /app
 
 # Copy the current directory contents into the container at /app
-COPY /src/service_processors /app/src/service_processors/
+COPY /src/service_processor /app/src/service_processors/
 COPY pyproject.toml /app
 
 
