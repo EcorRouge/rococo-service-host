@@ -25,3 +25,18 @@ tests/test_message.py::test_rabbitmq_send_message PASSED                        
 
 ============================================================ 1 passed in 0.03s ============================================================
 ```
+
+## Creating a child image - custom processors
+
+Use the example in "child_example" folder
+From project root do:
+
+```bash
+docker build -t custom_service_processor ./child_example/
+docker run -d --name custom_service_processor_img --env-file .env custom_service_processor
+```
+
+Tests for child
+```bash
+docker exec -it custom_service_processor_img poetry run pytest -vv
+```
