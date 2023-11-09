@@ -1,4 +1,4 @@
 """
 Service processors
 """
-from .child_logging_processor import ChildLoggingServiceProcessor
+from .child_logging_service_processor import ChildLoggingServiceProcessor
