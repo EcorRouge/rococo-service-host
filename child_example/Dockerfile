@@ -1,11 +1,11 @@
 # Use the base image as a parent image
-FROM rococo_service_processor:latest
+FROM ecorrouge/rococo-service-host:latest
 # Set the working directory to /app
 
 WORKDIR /app
 
 # Copy the current directory contents into the container at /app
-COPY /src/service_processors /app/src/service_processors/
+COPY /src/services /app/src/services/
 
 
 # Run service.py when the container launches
