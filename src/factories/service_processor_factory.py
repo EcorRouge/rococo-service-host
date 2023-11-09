@@ -2,8 +2,12 @@
 Service processor factory
 """
 from typing import Optional
+import logging
 from rococo.messaging import BaseServiceProcessor
 from .config_factory import Config
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
 def get_service_processor(config:Config) -> Optional[BaseServiceProcessor]:
     """
@@ -20,8 +24,8 @@ def get_service_processor(config:Config) -> Optional[BaseServiceProcessor]:
         instance = dynamic_class(*config.service_constructor_params)
         return instance
     except ImportError:
-        print("Error: Module '%s' not found.",config.get_env_var("PROCESSOR_MODULE"))
+        logging.error("Error: Module '%s' not found.",config.get_env_var("PROCESSOR_MODULE"))
     except AttributeError:
-        print("Error: Class '%s' not found in module '%s'.",
+        logging.error("Error: Class '%s' not found in module '%s'.",
               config.processor_type,config.get_env_var("PROCESSOR_MODULE"))
     return None
