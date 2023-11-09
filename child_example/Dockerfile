@@ -5,7 +5,7 @@ FROM ecorrouge/rococo-service-host:latest
 WORKDIR /app
 
 # Copy the current directory contents into the container at /app
-COPY /src/service_processors /app/src/service_processors/
+COPY /src/services /app/src/services/
 
 
 # Run service.py when the container launches
