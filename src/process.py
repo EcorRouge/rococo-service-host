@@ -17,7 +17,16 @@ if __name__ == '__main__':
         project_root = os.path.dirname(os.path.abspath(__file__))
         while not os.path.exists(os.path.join(project_root, 'pyproject.toml')):
             project_root = os.path.dirname(project_root)
+        logging.info("Rococo Service Host Version:")
         config.load_toml(project_root)
+
+        services_path = os.path.join(project_root,"src/services")
+        try:
+            # this will not output anything on the parent host
+            logging.info("Service Processor Version:")
+            config.load_toml(services_path)
+        finally:
+            pass
 
         if not config.validate_env_vars():
             raise ValueError("Invalid env configuration. Exiting program.")
