@@ -11,7 +11,7 @@ def get_service_processor(config:Config) -> Optional[BaseServiceProcessor]:
     """
     try:
         # Dynamically import the module
-        module = __import__("service_processors.service_processors")
+        module = __import__(config.get_env_var("PROCESSOR_MODULE"))
 
         # Access the class from the imported module
         dynamic_class = getattr(module,config.processor_type)
@@ -20,8 +20,8 @@ def get_service_processor(config:Config) -> Optional[BaseServiceProcessor]:
         instance = dynamic_class(*config.service_constructor_params)
         return instance
     except ImportError:
-        print("Error: Module 'service_processors.service_processors' not found.")
+        print("Error: Module '%s' not found.",config.get_env_var("PROCESSOR_MODULE"))
     except AttributeError:
-        print("Error: Class '%s' not found in module 'service_processors.service_processors'.",
-              config.processor_type)
+        print("Error: Class '%s' not found in module '%s'.",
+              config.processor_type,config.get_env_var("PROCESSOR_MODULE"))
     return None

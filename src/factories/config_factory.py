@@ -30,6 +30,10 @@ class Config(BaseConfig):
             logging.error("Invalid value for PROCESSOR_TYPE env var %s",
                           self.get_env_var("PROCESSOR_TYPE"))
             return False
+        if self.get_env_var("PROCESSOR_MODULE") is None:
+            logging.error("Invalid value for PROCESSOR_MODULE env var %s",
+                          self.get_env_var("PROCESSOR_MODULE"))
+            return False
         self.messaging_type = self.get_env_var("MESSAGING_TYPE")
         self.processor_type = self.get_env_var("PROCESSOR_TYPE")
         self.messaging_constructor_params = ()
