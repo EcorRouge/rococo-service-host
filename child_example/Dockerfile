@@ -5,7 +5,8 @@ FROM rococo_service_processor
 WORKDIR /app
 
 # Copy the current directory contents into the container at /app
-COPY /services/ /app/src/services/
+COPY /services/child_logging/ /app/src/services/
+COPY /services/pyproject.toml /app/src/services/
 
 # Run service.py when the container launches
 CMD ["poetry", "run", "python", "src/process.py"]
