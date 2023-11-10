@@ -1,21 +1,28 @@
 # Use an official Python runtime as a parent image
 FROM python:3.10.4
 
-# Install Poetry
-RUN curl -sSL https://install.python-poetry.org | python3.10 -
-
-# Adjust the PATH to include the Poetry bin directory
-ENV PATH="${PATH}:/root/.local/bin"
-
-# Set the working directory to /app
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-COPY . /app
-COPY ./pyproject.toml /app/src/info/pyproject.toml
+RUN python -m pip install --upgrade pip
 
-# Install dependencies using Poetry
-RUN poetry install
+# Install Poetry
+RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python && \
+    cd /usr/local/bin && \
+    ln -s /opt/poetry/bin/poetry && \
+    poetry config virtualenvs.create false
 
-# Run service.py when the container launches
-CMD ["poetry", "run", "python", "src/process.py"]
+RUN poetry --version
+
+COPY pyproject.toml poetry.lock* ./
+
+# Allow installing dev dependencies to run tests
+ARG INSTALL_DEV=false
+RUN bash -c "if [ $INSTALL_DEV == 'true' ] ; then poetry install --no-root ; else poetry install --no-root --no-dev ; fi"
+
+COPY . .
+
+ENV PYTHONPATH /app
+
+RUN chmod +x ./docker-entrypoint.sh
+
+ENTRYPOINT ["./docker-entrypoint.sh"]
