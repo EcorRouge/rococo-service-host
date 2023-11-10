@@ -28,7 +28,13 @@ tests/test_message.py::test_rabbitmq_send_message PASSED                        
 
 ## Creating a child image - custom processors
 
-Use the example in "child_example" folder
+Use the example in "child_example" folder. What you need to do is:
+- create a `processor.py` file with the Class for the processor
+- create the `__init__.py` file importing it
+- have a `pyproject.toml` for it
+- copy all 3 files into `/app/src/services/` in the target image
+- have an env var with `PROCESSOR_TYPE` that specifies the Class, and PROCESSOR_MODULE which specifies the module to import, which is usually services.processor  if you named your file `processor.py`
+
 From project root do:
 
 ```bash
