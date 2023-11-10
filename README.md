@@ -28,7 +28,7 @@ tests/test_message.py::test_rabbitmq_send_message PASSED                        
 
 ## Creating a child image - custom processors
 
-Use the example in "child_example" folder. What you need to do is:
+Use the example in "service_example" folder. What you need to do is:
 - create a `processor.py` file with the Class for the processor
 - create the `__init__.py` file importing it
 - have a `pyproject.toml` for it
@@ -38,8 +38,8 @@ Use the example in "child_example" folder. What you need to do is:
 From project root do:
 
 ```bash
-docker build -t custom_service_processor ./child_example/
-docker run -d --name custom_service_processor_img --env-file .env.child custom_service_processor
+docker build -t custom_service_processor -f ./service_example/Dockerfile .
+docker run --name custom_service_processor_img --env-file .env.child custom_service_processor
 ```
 
 Tests for child

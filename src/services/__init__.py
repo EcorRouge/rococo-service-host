@@ -1,4 +1,4 @@
 """
 Service processors
 """
-from .logging_service_processor import LoggingServiceProcessor
+from .processor import LoggingServiceProcessor
