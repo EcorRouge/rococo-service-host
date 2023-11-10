@@ -7,10 +7,12 @@ from rococo.config import BaseConfig
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
+
 class Config(BaseConfig):
     """
     Host Config class
     """
+
     def __init__(self):
         super().__init__()
         self.messaging_type = None
@@ -54,7 +56,7 @@ class Config(BaseConfig):
                                   self.get_env_var("RABBITMQ_NUM_THREADS"))
                     return False
         else:
-            logging.error("Invalid MESSAGING_TYPE %s",self.messaging_type)
+            logging.error("Invalid MESSAGING_TYPE %s", self.messaging_type)
             return False
         self.service_constructor_params = ()
         return True
