@@ -12,6 +12,7 @@ WORKDIR /app
 
 # Copy the current directory contents into the container at /app
 COPY . /app
+COPY ./pyproject.toml /app/src/info/pyproject.toml
 
 # Install dependencies using Poetry
 RUN poetry install
