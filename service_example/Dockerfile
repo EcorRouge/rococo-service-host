@@ -7,7 +7,7 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY /service_example/__init__.py /app/src/services/__init__.py
 COPY /service_example/processor.py /app/src/services/processor.py
-COPY /service_example/pyproject.toml /app/src/services/pyproject.toml
+COPY /service_example/pyproject.toml /app/pyproject.toml
 
 # Install dependencies using Poetry
 RUN poetry install
