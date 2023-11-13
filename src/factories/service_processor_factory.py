@@ -1,6 +1,7 @@
 """
 Service processor factory
 """
+import importlib
 from typing import Optional
 import logging
 from rococo.messaging import BaseServiceProcessor
@@ -16,7 +17,7 @@ def get_service_processor(config: Config) -> Optional[BaseServiceProcessor]:
     """
     try:
         # Dynamically import the module
-        module = __import__(config.get_env_var("PROCESSOR_MODULE"))
+        module = importlib.import_module(config.get_env_var("PROCESSOR_MODULE"))
 
         # Access the class from the imported module
         dynamic_class = getattr(module, config.processor_type)

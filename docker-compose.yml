@@ -17,7 +17,7 @@ services:
       retries: 3
 
   rococo_service_processor:
-    image: rococo_service_processor
+    image: ecorrouge/rococo_service_processor
     container_name: rococo_service_processor
     build:
       context: .
