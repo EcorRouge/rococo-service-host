@@ -1,5 +1,4 @@
-# Use an official Python runtime as a parent image
-FROM python:3.10.4
+FROM python:3.10
 
 WORKDIR /app
 
@@ -15,14 +14,10 @@ RUN poetry --version
 
 COPY pyproject.toml poetry.lock* ./
 
-# Allow installing dev dependencies to run tests
-ARG INSTALL_DEV=false
-RUN bash -c "if [ $INSTALL_DEV == 'true' ] ; then poetry install --no-root ; else poetry install --no-root --no-dev ; fi"
+RUN poetry install
 
 COPY . .
 
 ENV PYTHONPATH /app
 
-RUN chmod +x ./docker-entrypoint.sh
-
-ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["poetry", "run", "python", "src/process.py"]
