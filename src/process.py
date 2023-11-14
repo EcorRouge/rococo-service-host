@@ -17,9 +17,13 @@ if __name__ == '__main__':
         logging.info("Rococo Service Host Version:")
         config.load_toml("/app/src/info")
 
-        # this will not output anything on the parent host
-        logging.info("Service Processor Version:")
-        config.load_toml("/app")
+        services_path = os.path.join(project_root, "src/services")
+        try:
+            # this will not output anything on the parent host
+            logging.info("Service Processor Version:")
+            config.load_toml(services_path)
+        finally:
+            pass
 
         if not config.validate_env_vars():
             raise ValueError("Invalid env configuration. Exiting program.")
@@ -27,12 +31,13 @@ if __name__ == '__main__':
         with get_message_adapter(config) as message_adapter:
             if config.messaging_type == "RabbitMqConnection":
                 queue_name = config.get_env_var('RABBITMQ_QUEUE')
-                message_adapter.consume_messages(queue_name=queue_name,
-                                                callback_function=service_processor.process,
-                                                num_threads=config.num_threads)
+                message_adapter.consume_messages(
+                    queue_name=queue_name,
+                    callback_function=service_processor.process
+                )
             else:
-                logging.error("Invalid config.messaging_type %s",config.messaging_type)
+                logging.error("Invalid config.messaging_type %s", config.messaging_type)
 
-    except Exception as e: # pylint: disable=W0718
+    except Exception as e:  # pylint: disable=W0718
         logging.error(traceback.format_exc())
         logging.error(e)

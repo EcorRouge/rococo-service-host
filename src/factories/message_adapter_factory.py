@@ -6,7 +6,8 @@ from rococo.messaging.base import MessageAdapter
 from rococo.messaging.rabbitmq import RabbitMqConnection
 from .config_factory import Config
 
-def get_message_adapter(config:Config) -> MessageAdapter:
+
+def get_message_adapter(config: Config) -> MessageAdapter:
     """
     Returns a message adapter depending on MESSAGING_TYPE env var
     """

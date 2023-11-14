@@ -5,6 +5,7 @@ import json
 import pika
 from rococo.config import BaseConfig
 
+
 def test_rabbitmq_send_message():
     """
     Establish a connection to RabbitMQ server
@@ -30,9 +31,11 @@ def test_rabbitmq_send_message():
     channel.queue_declare(queue=config.get_env_var("RABBITMQ_QUEUE"), durable=True)
 
     # Publish a message to the queue
-    channel.basic_publish(exchange='',
-                          routing_key=config.get_env_var("RABBITMQ_QUEUE"),
-                          body=json.dumps({"message": "Hello, RabbitMQ!"}))
+    channel.basic_publish(
+        exchange='',
+        routing_key=config.get_env_var("RABBITMQ_QUEUE"),
+        body=json.dumps({"message": "Hello, RabbitMQ!"})
+    )
 
     print("Message sent to RabbitMQ.")
 

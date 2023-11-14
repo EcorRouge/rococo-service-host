@@ -33,7 +33,7 @@ Use the example in "service_example" folder. What you need to do is:
 - create the `__init__.py` file importing it
 - have a `pyproject.toml` for it
 - copy all 3 files into `/app/src/services/` in the target image
-- have an env var with `PROCESSOR_TYPE` that specifies the Class, and PROCESSOR_MODULE which specifies the module to import, which is usually services.processor  if you named your file `processor.py`
+- have an env var with `PROCESSOR_TYPE` that specifies the Class, and PROCESSOR_MODULE which specifies the module to import, which is usually `services.processor`  if you named your file `processor.py`
 
 From project root do:
 
