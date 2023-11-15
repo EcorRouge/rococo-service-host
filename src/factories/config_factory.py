@@ -45,8 +45,8 @@ class Config(BaseConfig):
             self.messaging_constructor_params = (
                 self.get_env_var('RABBITMQ_HOST'),
                 int(self.get_env_var('RABBITMQ_PORT')),
-                self.get_env_var('RABBITMQ_DEFAULT_USER'),
-                self.get_env_var('RABBITMQ_DEFAULT_PASS'),
+                self.get_env_var('RABBITMQ_USER'),
+                self.get_env_var('RABBITMQ_PASSWORD'),
                 self.get_env_var('RABBITMQ_VIRTUAL_HOST'))
             if self.get_env_var("RABBITMQ_NUM_THREADS"):
                 try:

@@ -13,17 +13,12 @@ logging.basicConfig(level=logging.INFO)
 if __name__ == '__main__':
     try:
         config = Config()
-
         logging.info("Rococo Service Host Version:")
-        config.load_toml("/app/src/info")
+        # config.load_toml("/app/src/info") # TODO: Not working for the moment
 
-        services_path = os.path.join(project_root, "src/services")
-        try:
-            # this will not output anything on the parent host
-            logging.info("Service Processor Version:")
-            config.load_toml(services_path)
-        finally:
-            pass
+        # this will not output anything on the parent host
+        logging.info("Service Processor Version:")
+        config.load_toml("/app")
 
         if not config.validate_env_vars():
             raise ValueError("Invalid env configuration. Exiting program.")
