@@ -4,6 +4,7 @@ Service processor factory
 import importlib
 from typing import Optional
 import logging
+import traceback
 from rococo.messaging import BaseServiceProcessor
 from .config_factory import Config
 
@@ -28,7 +29,11 @@ def get_service_processor(config: Config) -> Optional[BaseServiceProcessor]:
         return instance
     except ImportError as e:
         logging.error("Error: Module '%s' not found. Error: %s",processor_module,e)
+        logging.error(traceback.format_exc())
+        logging.error(traceback.format_stack())
     except AttributeError as e:
         logging.error("Error: Class '%s' not found in module '%s'. Error: %s",
                       config.processor_type,processor_module,e)
+        logging.error(traceback.format_exc())
+        logging.error(traceback.format_stack())
     return None
