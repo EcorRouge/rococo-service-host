@@ -26,8 +26,9 @@ def get_service_processor(config: Config) -> Optional[BaseServiceProcessor]:
         # Create an instance of the dynamic class with the specified parameters
         instance = dynamic_class(*config.service_constructor_params)
         return instance
-    except ImportError:
-        logging.error(f"Error: Module '{processor_module}' not found.")
-    except AttributeError:
-        logging.error(f"Error: Class '{config.processor_type}' not found in module '{processor_module}'.")
+    except ImportError as e:
+        logging.error("Error: Module '%s' not found. Error: %s",processor_module,e)
+    except AttributeError as e:
+        logging.error("Error: Class '%s' not found in module '%s'. Error: %s",
+                      config.processor_type,processor_module,e)
     return None
