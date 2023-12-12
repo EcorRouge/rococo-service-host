@@ -25,7 +25,8 @@ if __name__ == '__main__':
         service_processor = get_service_processor(config)
         with get_message_adapter(config) as message_adapter:
             if config.messaging_type == "RabbitMqConnection":
-                queue_name = config.get_env_var('RABBITMQ_QUEUE')
+                processor_class_name = config.get_env_var("PROCESSOR_TYPE")
+                queue_name = config.get_env_var(f'{processor_class_name}_QUEUE_NAME')
                 message_adapter.consume_messages(
                     queue_name=queue_name,
                     callback_function=service_processor.process
