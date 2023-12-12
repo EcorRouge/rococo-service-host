@@ -34,6 +34,7 @@ Use the example in "service_example" folder. What you need to do is:
 - have a `pyproject.toml` for it
 - copy all 3 files into `/app/src/services/` in the target image
 - have an env var with `PROCESSOR_TYPE` that specifies the Class, and PROCESSOR_MODULE which specifies the module to import, which is usually `services.processor`  if you named your file `processor.py`
+- after you named your processor class, you must create the env var `< processor_class_name >_QUEUE_NAME` = `< your_rabbit_mq_queue_name >`
 
 From project root do:
 
@@ -45,4 +46,30 @@ docker run --name custom_service_processor_img --env-file .env.child custom_serv
 Tests for child
 ```bash
 docker exec -it custom_service_processor_img poetry run pytest -vv
+```
+
+
+## Development
+
+These are instructions for building the dev environment of the service host.
+
+### RabitMQ image
+
+```bash
+docker network create rabbitmq-network
+docker run -d --net=rabbitmq-network --name some-rabbit -p 5672:5672 -p 15672:15672 -e RABBITMQ_DEFAULT_USER=user -e RABBITMQ_DEFAULT_PASS=password rabbitmq:3-management
+```
+
+
+### Service host image
+
+```bash
+docker build -t rococo-service-host .
+docker run --net=rabbitmq-network --env-file ./.env --name rococo-service-host rococo-service-host
+```
+
+### Test
+
+```bash
+docker exec -it rococo-service-host poetry run pytest -vv
 ```

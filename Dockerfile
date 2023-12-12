@@ -14,9 +14,12 @@ RUN poetry --version
 
 COPY pyproject.toml poetry.lock* ./
 
+COPY pyproject.toml /app/src/info/
+
 RUN poetry install
 
-COPY . .
+COPY ./src ./src
+COPY ./tests ./tests
 
 ENV PYTHONPATH /app
 
