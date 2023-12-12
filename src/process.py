@@ -14,7 +14,10 @@ if __name__ == '__main__':
     try:
         config = Config()
         logging.info("Rococo Service Host Version:")
-        # config.load_toml("/app/src/info") # TODO: Not working for the moment
+        try:
+            config.load_toml("/app/src/info")
+        finally:
+            pass
 
         # this will not output anything on the parent host
         logging.info("Service Processor Version:")
