@@ -23,4 +23,8 @@ COPY ./tests ./tests
 
 ENV PYTHONPATH /app
 
+ENV MESSAGING_TYPE=RabbitMqConnection
+ENV PROCESSOR_TYPE=LoggingServiceProcessor
+ENV PROCESSOR_MODULE=services.processor
+
 CMD ["poetry", "run", "python", "src/process.py"]
