@@ -17,7 +17,7 @@ Use the example in "service_example" folder. What you need to do is:
 - create the `__init__.py` file importing it
 - have a `pyproject.toml` for it
 - copy all 3 files into `/app/src/services/` in the target image
-- have an env var with `PROCESSOR_TYPE` that specifies the Class, and PROCESSOR_MODULE which specifies the module to import, which is usually `services.processor`  if you named your file `processor.py`
+- have an env var in your Dockerfile with `PROCESSOR_TYPE` that specifies the Class, and `PROCESSOR_MODULE` which specifies the module to import, which is usually `services.processor`  if you named your file `processor.py`
 - after you named your processor class, you must create the env var `< processor_class_name >_QUEUE_NAME` = `< your_rabbit_mq_queue_name >`
 - `QUEUE_NAME_PREFIX` value is optional but the var needs to be provided
 
@@ -35,7 +35,7 @@ docker run --net=rabbitmq-network --env-file ./.env --env-file ./.env.secrets --
 
 Tests for child
 ```bash
-docker exec -it custom_service_processor_img poetry run pytest -vv
+docker exec -it custom-service-processor poetry run pytest -vv
 ```
 
 
