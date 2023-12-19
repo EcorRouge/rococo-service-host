@@ -39,6 +39,17 @@ docker exec -it custom-service-processor poetry run pytest -vv
 ```
 
 
+For a child of a cron processor:
+
+```bash
+cd cron_service_example
+docker build -t cron-service-processor .
+docker run --env-file ./.env --name cron-service-processor cron-service-processor
+```
+
+No tests are setup for cron processor thus far.
+
+
 ## Development
 
 These are instructions for building the dev environment of the service host.
@@ -63,3 +74,22 @@ docker run --net=rabbitmq-network --env-file ./.env --env-file ./.env.secrets --
 ```bash
 docker exec -it rococo-service-host poetry run pytest -vv
 ```
+
+## Cron processor
+
+If you are making a processor based on cron execution, these are the only env vars needed at Dockerfile level
+
+- PROCESSOR_MODULE=your.processor.module
+
+And at .env place only these
+
+- EXECUTION_TYPE=CRON
+- CRON_TIME=your_cron_time_string    (example : CRON_TIME=* * * * *)
+
+Next, you need to write a processor that executes with `if __name__ == "__main__:"`
+
+An example setup of a cron processor image is at "/cron_service_example"
+
+Naturally, you wont need a RabbitMQ server nor listener for a cron processor, so the processor doesn't need a class that extends BaseServiceProcessor from rococo messaging.
+
+This makes it so that the cron job is saved and it will fire the file provided in your PROCESSOR_MODULE+.py
