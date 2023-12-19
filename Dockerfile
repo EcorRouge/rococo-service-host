@@ -2,7 +2,12 @@ FROM python:3.10
 
 WORKDIR /app
 
-RUN python -m pip install --upgrade pip
+RUN set -x \
+   && apt update
+
+# Install cron
+RUN set -x \
+   && apt install -y cron
 
 # Install Poetry
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python && \
