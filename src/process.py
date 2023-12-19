@@ -4,6 +4,9 @@ Main loop for service processor host
 
 import logging
 import traceback
+from time import sleep
+import sys
+from crontab import CronTab
 from factories import get_message_adapter, get_service_processor
 from factories import Config
 
@@ -25,17 +28,35 @@ if __name__ == '__main__':
 
         if not config.validate_env_vars():
             raise ValueError("Invalid env configuration. Exiting program.")
-        service_processor = get_service_processor(config)
-        with get_message_adapter(config) as message_adapter:
-            if config.messaging_type == "RabbitMqConnection":
-                processor_class_name = config.get_env_var("PROCESSOR_TYPE")
-                queue_name = config.get_env_var(f'{processor_class_name}_QUEUE_NAME')+config.get_env_var("QUEUE_NAME_PREFIX")
-                message_adapter.consume_messages(
-                    queue_name=queue_name,
-                    callback_function=service_processor.process
-                )
-            else:
-                logging.error("Invalid config.messaging_type %s", config.messaging_type)
+        
+        if config.get_env_var("EXECUTION_TYPE") not in ["CRON"]: # if its a message processor
+            service_processor = get_service_processor(config)
+            with get_message_adapter(config) as message_adapter:
+                if config.messaging_type == "RabbitMqConnection":
+                    processor_class_name = config.get_env_var("PROCESSOR_TYPE")
+                    queue_name = config.get_env_var(f'{processor_class_name}_QUEUE_NAME')+config.get_env_var("QUEUE_NAME_PREFIX")
+                    message_adapter.consume_messages(
+                        queue_name=queue_name,
+                        callback_function=service_processor.process
+                    )
+                else:
+                    logging.error("Invalid config.messaging_type %s", config.messaging_type)
+        else: # if its cron
+            cron = CronTab(user=True)
+            # Create a new cron job
+            job = cron.new(command=f"python /app/src/{config.get_env_var('PROCESSOR_MODULE').replace('.','/')}.py")
+            job.setall(config.cron_time)
+
+            # Write the cron job to the crontab
+            cron.write()
+
+            logging.info("Cron job created successfully. Keeping image alive.")
+            try:
+                while True:
+                    sys.stdout.flush()
+                    sleep(10)
+            except KeyboardInterrupt:
+                logging.info("Keyboard interrupt. Exiting gracefuly.")
 
     except Exception as e:  # pylint: disable=W0718
         logging.error(traceback.format_exc())
