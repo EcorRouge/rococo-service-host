@@ -1,5 +1,5 @@
 # Use the base image as a parent image
-FROM ecorrouge/rococo-service-host:latest
+FROM rococo-service-host
 
 # Set the working directory to /app
 WORKDIR /app
