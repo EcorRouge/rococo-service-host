@@ -81,16 +81,10 @@ docker exec -it rococo-service-host poetry run pytest -vv
 If you are making a processor based on cron execution, these are the only env vars needed at Dockerfile level
 
 - PROCESSOR_MODULE=your.processor.module
-
-And at .env place only these
-
 - EXECUTION_TYPE=CRON
-- CRON_TIME=your_cron_time_string    (example : CRON_TIME=* * * * *)
-
-Next, you need to write a processor that executes with `if __name__ == "__main__:"`
+- CRON_TIME_AMOUNT=time_in_int_or_float    (example : CRON_TIME_AMOUNT=30 or CRON_TIME_AMOUNT=0.5 )
+- CRON_TIME_UNIT=time_in_units    (one of [SECONDS,MINUTES,HOURS,DAYS,WEEKS] , example = CRON_TIME_UNIT=SECONDS)
 
 An example setup of a cron processor image is at "/cron_service_example"
 
 Naturally, you wont need a RabbitMQ server nor listener for a cron processor, so the processor doesn't need a class that extends BaseServiceProcessor from rococo messaging.
-
-This makes it so that the cron job is saved and it will fire the file provided in your PROCESSOR_MODULE+.py
