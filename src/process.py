@@ -28,13 +28,15 @@ if __name__ == '__main__':
 
         if not config.validate_env_vars():
             raise ValueError("Invalid env configuration. Exiting program.")
-        
+
         if config.get_env_var("EXECUTION_TYPE") not in ["CRON"]: # if its a message processor
             service_processor = get_service_processor(config)
             with get_message_adapter(config) as message_adapter:
                 if config.messaging_type == "RabbitMqConnection":
                     processor_class_name = config.get_env_var("PROCESSOR_TYPE")
-                    queue_name = config.get_env_var(f'{processor_class_name}_QUEUE_NAME')+config.get_env_var("QUEUE_NAME_PREFIX")
+                    queue_name = config.get_env_var(
+                        "QUEUE_NAME_PREFIX")+config.get_env_var(
+                            f'{processor_class_name}_QUEUE_NAME')
                     message_adapter.consume_messages(
                         queue_name=queue_name,
                         callback_function=service_processor.process

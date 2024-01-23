@@ -1,4 +1,4 @@
-# rococo-service-host
++# rococo-service-host
 A Docker-based host for services that process messages from a queue
 
 ## Processing
@@ -20,6 +20,7 @@ Use the example in "service_example" folder. What you need to do is:
 - have an env var in your Dockerfile with `PROCESSOR_TYPE` that specifies the Class, and `PROCESSOR_MODULE` which specifies the module to import, which is usually `services.processor`  if you named your file `processor.py`
 - after you named your processor class, you must create the env var `< processor_class_name >_QUEUE_NAME` = `< your_rabbit_mq_queue_name >`
 - `QUEUE_NAME_PREFIX` value is optional but the var needs to be provided
+- The queue name that is formed is `queue_name_prefix+processor_class_name+_QUEUE_NAME`
 
 In this case you can test the service_example child image
 
