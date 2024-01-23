@@ -20,8 +20,3 @@ class LoggingServiceProcessor():  # pylint: disable=R0903
     def process(self):
         """Main processor loop"""
         logging.info("Cron processor execution started at %s ...",datetime.datetime.utcnow())
-
-
-if __name__ == "__main__":
-    cls = LoggingServiceProcessor()
-    cls.process()

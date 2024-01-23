@@ -29,8 +29,9 @@ if __name__ == '__main__':
         if not config.validate_env_vars():
             raise ValueError("Invalid env configuration. Exiting program.")
 
+        service_processor = get_service_processor(config)
+
         if config.get_env_var("EXECUTION_TYPE") not in ["CRON"]: # if its a message processor
-            service_processor = get_service_processor(config)
             with get_message_adapter(config) as message_adapter:
                 if config.messaging_type == "RabbitMqConnection":
                     processor_class_name = config.get_env_var("PROCESSOR_TYPE")
@@ -44,21 +45,25 @@ if __name__ == '__main__':
                 else:
                     logging.error("Invalid config.messaging_type %s", config.messaging_type)
         else: # if its cron
-            cron = CronTab(user=True)
-            # Create a new cron job
-            job = cron.new(command=f"python /app/src/{config.get_env_var('PROCESSOR_MODULE').replace('.','/')}.py")
-            job.setall(config.cron_time)
+            # Schedule the job to run every 30 seconds
+            unit = config.get_env_var("CRON_TIME_UNIT").lower()
+            amount = float(config.get_env_var("CRON_TIME_AMOUNT"))
+            if unit == "seconds":
+                schedule.every(amount).seconds.do(service_processor.process)
+            elif unit == "minutes":
+                schedule.every(amount).minutes.do(service_processor.process)
+            elif unit == "hours":
+                schedule.every(amount).hours.do(service_processor.process)
+            elif unit == "days":
+                schedule.every(amount).days.do(service_processor.process)
+            elif unit == "weeks":
+                schedule.every(amount).weeks.do(service_processor.process)
+            else:
+                raise ValueError(f"Unsupported time unit {unit}")
 
-            # Write the cron job to the crontab
-            cron.write()
-
-            logging.info("Cron job created successfully. Keeping image alive.")
-            try:
-                while True:
-                    sys.stdout.flush()
-                    sleep(10)
-            except KeyboardInterrupt:
-                logging.info("Keyboard interrupt. Exiting gracefuly.")
+            while True:
+                schedule.run_pending()
+                sleep(1)
 
     except Exception as e:  # pylint: disable=W0718
         logging.error(traceback.format_exc())
