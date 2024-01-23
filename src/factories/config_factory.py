@@ -2,7 +2,6 @@
 Host Config class
 """
 import logging
-from croniter import croniter, CroniterBadCronError
 from rococo.config import BaseConfig
 
 # Configure logging
@@ -42,17 +41,30 @@ class Config(BaseConfig):
                         self.get_env_var("PROCESSOR_MODULE"))
             return False
         if self.get_env_var("EXECUTION_TYPE") == "CRON":
-            if self.get_env_var("CRON_TIME") is None:
-                logging.error("Invalid value for CRON_TIME env var %s",
-                        self.get_env_var("CRON_TIME"))
+            if self.get_env_var("CRON_TIME_AMOUNT") is None:
+                logging.error("Invalid value for CRON_TIME_AMOUNT env var %s",
+                        self.get_env_var("CRON_TIME_AMOUNT"))
+                return False
+            try:
+                float(self.get_env_var("CRON_TIME_AMOUNT"))
+            except Exception as e: # pylint: disable=W0718
+                logging.error("Exception %s. Invalid value for CRON_TIME_AMOUNT env var %s",
+                              e,
+                              self.get_env_var("CRON_TIME_AMOUNT"))
+                return False
+            valid_cron_units = ['seconds','minutes','hours','days','weeks']
+            if self.get_env_var("CRON_TIME_UNIT").lower() not in valid_cron_units:
+                logging.error("Invalid value for CRON_TIME_UNIT env var %s. Expected one of %s",
+                        self.get_env_var("CRON_TIME_UNIT").lower(),
+                        valid_cron_units)
                 return False
 
-        self.messaging_type = self.get_env_var("MESSAGING_TYPE")
-        if self.get_env_var("EXECUTION_TYPE") not in ["CRON"]:
-            self.processor_type = self.get_env_var("PROCESSOR_TYPE")
+        
+        self.processor_type = self.get_env_var("PROCESSOR_TYPE")
         self.messaging_constructor_params = ()
         self.num_threads = 1
         if self.get_env_var("EXECUTION_TYPE") not in ["CRON"]:
+            self.messaging_type = self.get_env_var("MESSAGING_TYPE")
             if self.messaging_type == "RabbitMqConnection":
                 self.messaging_constructor_params = (
                     self.get_env_var('RABBITMQ_HOST'),
@@ -69,13 +81,6 @@ class Config(BaseConfig):
                         return False
             else:
                 logging.error("Invalid MESSAGING_TYPE %s", self.messaging_type)
-                return False
-        else:
-            try:
-                self.cron_time = self.get_env_var("CRON_TIME")
-                croniter(self.cron_time)
-            except CroniterBadCronError:
-                logging.error("Badly formatted CRON_TIME %s",self.get_env_var("CRON_TIME"))
                 return False
             
         self.service_constructor_params = ()
