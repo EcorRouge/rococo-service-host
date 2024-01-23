@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "src"
-version = "0.1.8"
+version = "0.1.6"
 description = ""
 authors = ["Matias Garafoni <matias.garafoni@gmail.com>"]
 readme = "README.md"
@@ -9,7 +9,6 @@ readme = "README.md"
 python = "^3.10"
 pytest = "^7.4.3"
 rococo = "^0.1.23"
-schedule = "^1.2.1"
 
 
 [build-system]

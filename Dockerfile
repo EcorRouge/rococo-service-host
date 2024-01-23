@@ -2,7 +2,8 @@ FROM python:3.10
 
 WORKDIR /app
 
-RUN python -m pip install --upgrade pip
+RUN set -x \
+   && apt update
 
 # Install Poetry
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python && \
@@ -26,5 +27,6 @@ ENV PYTHONPATH /app
 ENV MESSAGING_TYPE=RabbitMqConnection
 ENV PROCESSOR_TYPE=LoggingServiceProcessor
 ENV PROCESSOR_MODULE=services.processor
+ENV EXECUTION_TYPE=MESSAGING
 
 CMD ["poetry", "run", "python", "src/process.py"]
