@@ -5,10 +5,6 @@ WORKDIR /app
 RUN set -x \
    && apt update
 
-# Install cron
-RUN set -x \
-   && apt install -y cron
-
 # Install Poetry
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python && \
     cd /usr/local/bin && \
@@ -31,5 +27,6 @@ ENV PYTHONPATH /app
 ENV MESSAGING_TYPE=RabbitMqConnection
 ENV PROCESSOR_TYPE=LoggingServiceProcessor
 ENV PROCESSOR_MODULE=services.processor
+ENV EXECUTION_TYPE=MESSAGING
 
 CMD ["poetry", "run", "python", "src/process.py"]
