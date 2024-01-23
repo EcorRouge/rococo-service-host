@@ -5,8 +5,7 @@ Main loop for service processor host
 import logging
 import traceback
 from time import sleep
-import sys
-from crontab import CronTab
+import schedule
 from factories import get_message_adapter, get_service_processor
 from factories import Config
 
