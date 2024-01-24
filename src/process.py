@@ -2,28 +2,27 @@
 Main loop for service processor host
 """
 
-import logging
+from logger import Logger
 import traceback
 from time import sleep
 import schedule
 from factories import get_message_adapter, get_service_processor
 from factories import Config
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+logger = Logger().get_logger()
 
 if __name__ == '__main__':
     try:
         config = Config()
-        logging.info("Rococo Service Host Version:")
         try:
-            config.load_toml("/app/src/info")
+            config.load_toml("/app/src/info",log_version_string=False)
+            logger.info("Rococo Service Host Version: %s",config.get_project_version())
         finally:
             pass
 
-        # this will not output anything on the parent host
-        logging.info("Service Processor Version:")
-        config.load_toml("/app")
+        config.project_version = ""
+        config.load_toml("/app",log_version_string=False)
+        logger.info("Service Processor Version: %s",config.get_project_version())
 
         if not config.validate_env_vars():
             raise ValueError("Invalid env configuration. Exiting program.")
@@ -42,7 +41,7 @@ if __name__ == '__main__':
                         callback_function=service_processor.process
                     )
                 else:
-                    logging.error("Invalid config.messaging_type %s", config.messaging_type)
+                    logger.error("Invalid config.messaging_type %s", config.messaging_type)
         else: # if its cron
             # Schedule the job to run every 30 seconds
             unit = config.get_env_var("CRON_TIME_UNIT").lower()
@@ -65,5 +64,5 @@ if __name__ == '__main__':
                 sleep(1)
 
     except Exception as e:  # pylint: disable=W0718
-        logging.error(traceback.format_exc())
-        logging.error(e)
+        logger.error(traceback.format_exc())
+        logger.error(e)
