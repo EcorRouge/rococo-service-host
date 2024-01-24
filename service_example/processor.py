@@ -2,12 +2,12 @@
 Base example of a service processor within the child image
 """
 
-import logging
+from logger import Logger
 from rococo.messaging import BaseServiceProcessor
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
 
+logger = Logger().get_logger()
 
 # This is an example implementation of a BaseServiceProcessor class.
 # This should be done in the child image
@@ -17,7 +17,7 @@ class ChildLoggingServiceProcessor(BaseServiceProcessor):  # pylint: disable=R09
     """
 
     def process(self, message):
-        logging.info("Received message: %s to the child image!", message)
+        logger.info("Received message: %s to the child image!", message)
 
     def __init__(self):
         super().__init__()

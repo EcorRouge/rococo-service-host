@@ -2,11 +2,11 @@
 Base example of a service processor
 """
 
-import logging
+from logger import Logger
 from rococo.messaging import BaseServiceProcessor
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logger = Logger().get_logger()
 
 
 # This is an example implementation of a BaseServiceProcessor class.
@@ -17,7 +17,7 @@ class LoggingServiceProcessor(BaseServiceProcessor):  # pylint: disable=R0903
     """
 
     def process(self, message):
-        logging.info("Received message: %s", message)
+        logger.info("Received message: %s", message)
 
     def __init__(self):
         super().__init__()

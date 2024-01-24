@@ -2,15 +2,14 @@
 Main loop for service processor host
 """
 
-import logging
+from logger import Logger
 import traceback
 from time import sleep
 import schedule
 from factories import get_message_adapter, get_service_processor
 from factories import Config
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+logger = Logger().get_logger()
 
 if __name__ == '__main__':
     try:
@@ -42,7 +41,7 @@ if __name__ == '__main__':
                         callback_function=service_processor.process
                     )
                 else:
-                    logging.error("Invalid config.messaging_type %s", config.messaging_type)
+                    logger.error("Invalid config.messaging_type %s", config.messaging_type)
         else: # if its cron
             # Schedule the job to run every 30 seconds
             unit = config.get_env_var("CRON_TIME_UNIT").lower()
@@ -65,5 +64,5 @@ if __name__ == '__main__':
                 sleep(1)
 
     except Exception as e:  # pylint: disable=W0718
-        logging.error(traceback.format_exc())
-        logging.error(e)
+        logger.error(traceback.format_exc())
+        logger.error(e)
