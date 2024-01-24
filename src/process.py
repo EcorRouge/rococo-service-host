@@ -14,15 +14,15 @@ logger = Logger().get_logger()
 if __name__ == '__main__':
     try:
         config = Config()
-        logging.info("Rococo Service Host Version:")
         try:
-            config.load_toml("/app/src/info")
+            config.load_toml("/app/src/info",log_version_string=False)
+            logger.info("Rococo Service Host Version: %s",config.get_project_version())
         finally:
             pass
 
-        # this will not output anything on the parent host
-        logging.info("Service Processor Version:")
-        config.load_toml("/app")
+        config.project_version = ""
+        config.load_toml("/app",log_version_string=False)
+        logger.info("Service Processor Version: %s",config.get_project_version())
 
         if not config.validate_env_vars():
             raise ValueError("Invalid env configuration. Exiting program.")
