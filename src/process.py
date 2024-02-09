@@ -53,7 +53,11 @@ if __name__ == '__main__':
             elif unit == "hours":
                 schedule.every(amount).hours.do(service_processor.process)
             elif unit == "days":
-                schedule.every(amount).days.do(service_processor.process)
+                if config.get_env_var("CRON_RUN_AT"):
+                    schedule.every(amount).days.at(
+                        config.get_env_var("CRON_RUN_AT")).do(service_processor.process)
+                else:
+                    schedule.every(amount).days.do(service_processor.process)
             elif unit == "weeks":
                 schedule.every(amount).weeks.do(service_processor.process)
             else:
