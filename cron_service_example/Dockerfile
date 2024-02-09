@@ -17,6 +17,6 @@ ENV PROCESSOR_TYPE=LoggingServiceProcessor
 ENV EXECUTION_TYPE=CRON
 ENV CRON_TIME_AMOUNT=30
 ENV CRON_TIME_UNIT=SECONDS
-
+ENV CRON_RUN_AT=
 # Run service.py when the container launches
 CMD ["poetry", "run", "python", "src/process.py"]
