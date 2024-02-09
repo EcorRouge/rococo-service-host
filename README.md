@@ -66,6 +66,7 @@ docker run -d --net=rabbitmq-network --name some-rabbit -p 5672:5672 -p 15672:15
 ### Service host image
 
 ```bash
+docker network create rabbitmq-network
 docker build -t rococo-service-host .
 docker run --net=rabbitmq-network --env-file ./.env --env-file ./.env.secrets --name rococo-service-host rococo-service-host
 ```
