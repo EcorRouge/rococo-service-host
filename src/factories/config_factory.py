@@ -55,8 +55,15 @@ class Config(BaseConfig):
                         self.get_env_var("CRON_TIME_UNIT").lower(),
                         valid_cron_units)
                 return False
+            if self.get_env_var("CRON_RUN_AT") and self.get_env_var(
+                "CRON_TIME_UNIT").lower() != 'days':
+                logger.error(
+                    f"Invalid cron configuration. Provided CRON_RUN_AT of "
+                    f"{self.get_env_var('CRON_RUN_AT')} while providing CRON_TIME_UNIT "
+                    f"of {self.get_env_var('CRON_TIME_UNIT')}. Expected DAYS"
+                    )
 
-        
+
         self.processor_type = self.get_env_var("PROCESSOR_TYPE")
         self.messaging_constructor_params = ()
         self.num_threads = 1
