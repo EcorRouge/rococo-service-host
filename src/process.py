@@ -67,6 +67,10 @@ if __name__ == '__main__':
                 schedule.run_pending()
                 sleep(1)
 
+    except KeyboardInterrupt:
+        # Ignore KeyboardInterrupt
+        pass
+
     except Exception as e:  # pylint: disable=W0718
         logger.error(traceback.format_exc())
         logger.error(e)
