@@ -75,7 +75,9 @@ class Config(BaseConfig):
                     int(self.get_env_var('RABBITMQ_PORT')),
                     self.get_env_var('RABBITMQ_USER'),
                     self.get_env_var('RABBITMQ_PASSWORD'),
-                    self.get_env_var('RABBITMQ_VIRTUAL_HOST'))
+                    self.get_env_var('RABBITMQ_VIRTUAL_HOST'),
+                    self.get_env_var('CONSUME_CONFIG_FILE_PATH')
+                    )
                 if self.get_env_var("RABBITMQ_NUM_THREADS"):
                     try:
                         self.num_threads = int(self.get_env_var("RABBITMQ_NUM_THREADS"))
