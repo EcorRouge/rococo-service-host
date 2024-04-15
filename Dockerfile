@@ -17,7 +17,7 @@ COPY pyproject.toml poetry.lock* ./
 
 COPY pyproject.toml /app/src/info/
 
-RUN poetry install
+RUN poetry lock --no-update && poetry install
 
 COPY ./src ./src
 COPY ./tests ./tests
