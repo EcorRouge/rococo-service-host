@@ -9,6 +9,10 @@ The docker image's main process is `process.py` which handles all message proces
 - Copy `.env.example` to `.env` at project root
 - Copy `.env.secrets.example` to `.env.secrets` at project root
 
+## Building and publishing
+
+When you merge code to main branch, the image will be built and published automatically to the dockerhub repository.
+
 
 ## Creating a child image - custom processors
 
