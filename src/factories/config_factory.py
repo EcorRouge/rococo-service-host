@@ -85,6 +85,13 @@ class Config(BaseConfig):
                         logger.error("Invalid value for RABBITMQ_NUM_THREADS %s . Expected int",
                                     self.get_env_var("RABBITMQ_NUM_THREADS"))
                         return False
+            elif self.messaging_type == "SqsConnection":
+                self.messaging_constructor_params = (
+                    self.get_env_var('AWS_ACCESS_KEY_ID'),
+                    self.get_env_var('AWS_ACCESS_KEY_SECRET'),
+                    self.get_env_var('AWS_REGION'),
+                    self.get_env_var('CONSUME_CONFIG_FILE_PATH')
+                )
             else:
                 logger.error("Invalid MESSAGING_TYPE %s", self.messaging_type)
                 return False

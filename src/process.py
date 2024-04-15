@@ -40,6 +40,15 @@ if __name__ == '__main__':
                         queue_name=queue_name,
                         callback_function=service_processor.process
                     )
+                elif config.messaging_type == "SqsConnection":
+                    processor_class_name = config.get_env_var("PROCESSOR_TYPE")
+                    queue_name = config.get_env_var(
+                        "QUEUE_NAME_PREFIX")+config.get_env_var(
+                            f'{processor_class_name}_QUEUE_NAME')
+                    message_adapter.consume_messages(
+                        queue_name=queue_name,
+                        callback_function=service_processor.process
+                    )
                 else:
                     logger.error("Invalid config.messaging_type %s", config.messaging_type)
         else: # if its cron
