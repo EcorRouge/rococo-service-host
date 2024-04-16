@@ -25,7 +25,7 @@ class Config(BaseConfig):
         # keeping as list now as a placeholder for additional messaging services like SQS
         if (self.get_env_var("EXECUTION_TYPE")
             and self.get_env_var("EXECUTION_TYPE") not in ["CRON"]) and (
-                self.get_env_var("MESSAGING_TYPE") not in ["RabbitMqConnection"]):
+                self.get_env_var("MESSAGING_TYPE") not in ["RabbitMqConnection", "SqsConnection"]):
             logger.error("Invalid value for MESSAGING_TYPE env var %s",
                         self.get_env_var("MESSAGING_TYPE"))
             return False
