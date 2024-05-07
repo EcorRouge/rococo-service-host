@@ -10,7 +10,7 @@ COPY ./processor.py /app/src/services/processor.py
 COPY ./pyproject.toml /app/pyproject.toml
 
 # Install dependencies using Poetry
-RUN poetry install
+RUN poetry lock --no-update && poetry install
 
 ENV MESSAGING_TYPE=RabbitMqConnection
 ENV PROCESSOR_TYPE=ChildLoggingServiceProcessor
