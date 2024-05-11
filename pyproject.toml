@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "src"
-version = "0.1.12"
+version = "0.1.13"
 description = ""
 authors = ["Matias Garafoni <matias.garafoni@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "3.10.14"
+python = "^3.11"
 pytest = "^7.4.3"
 rococo = "1.0.9"
 schedule = "^1.2.1"
