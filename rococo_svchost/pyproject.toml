@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "rococo-svchost"
-version = "0.1.15"
+version = "1.0.0"
 description = ""
 authors = ["Matias Garafoni <matias.garafoni@gmail.com>"]
 readme = "README.md"

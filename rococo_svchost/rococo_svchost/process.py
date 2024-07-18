@@ -2,12 +2,14 @@
 Main loop for service processor host
 """
 
-from .logger import Logger
-import traceback
-from time import sleep
+import importlib.metadata
 import schedule
-from .factories import get_message_adapter, get_service_processor
+import traceback
 from .factories import Config
+from .factories import get_message_adapter, get_service_processor
+from .logger import Logger
+from os import path
+from time import sleep
 
 logger = Logger().get_logger()
 
@@ -16,31 +18,21 @@ def main():
     try:
         config = Config()
 
-        logger.info("Service Processor Version: %s", "TO BE ADDED")
+        svchost_package = path.basename(path.dirname(__file__))
+        v = importlib.metadata.version(svchost_package)
+        logger.info("Rococo Service Host Version: %s", v)
 
         if not config.validate_env_vars():
             raise ValueError("Invalid env configuration. Exiting program.")
 
-        service_processor = get_service_processor(config)
+        service_processor, processor_info = get_service_processor(config)
+        logger.info("Service Processor Version: %s", processor_info.version)
 
-        if config.get_env_var("EXECUTION_TYPE") not in ["CRON"]: # if its a message processor
+        if config.get_env_var("EXECUTION_TYPE") not in ["CRON"]:  # if it's a message processor
             with get_message_adapter(config) as message_adapter:
-                if config.messaging_type == "RabbitMqConnection":
-                    processor_class_name = config.get_env_var("PROCESSOR_TYPE")
-                    queue_name = config.get_env_var(
-                        "QUEUE_NAME_PREFIX")+config.get_env_var(
-                            f'{processor_class_name}_QUEUE_NAME')
+                if config.messaging_type in ["RabbitMqConnection", "SqsConnection"]:
                     message_adapter.consume_messages(
-                        queue_name=queue_name,
-                        callback_function=service_processor.process
-                    )
-                elif config.messaging_type == "SqsConnection":
-                    processor_class_name = config.get_env_var("PROCESSOR_TYPE")
-                    queue_name = config.get_env_var(
-                        "QUEUE_NAME_PREFIX")+config.get_env_var(
-                            f'{processor_class_name}_QUEUE_NAME')
-                    message_adapter.consume_messages(
-                        queue_name=queue_name,
+                        queue_name=processor_info.queue_name,
                         callback_function=service_processor.process
                     )
                 else:

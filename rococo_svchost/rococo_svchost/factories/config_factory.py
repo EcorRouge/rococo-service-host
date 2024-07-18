@@ -30,14 +30,6 @@ class Config(BaseConfig):
             logger.error("Invalid value for MESSAGING_TYPE env var %s",
                          self.get_env_var("MESSAGING_TYPE"))
             return False
-        if self.get_env_var("PROCESSOR_TYPE") is None:
-            logger.error("Invalid value for PROCESSOR_TYPE env var %s",
-                         self.get_env_var("PROCESSOR_TYPE"))
-            return False
-        if self.get_env_var("PROCESSOR_MODULE") is None:
-            logger.error("Invalid value for PROCESSOR_MODULE env var %s",
-                         self.get_env_var("PROCESSOR_MODULE"))
-            return False
         if self.get_env_var("EXECUTION_TYPE") == "CRON":
             if self.get_env_var("CRON_TIME_AMOUNT") is None:
                 logger.error("Invalid value for CRON_TIME_AMOUNT env var %s",
@@ -64,7 +56,10 @@ class Config(BaseConfig):
                     f"of {self.get_env_var('CRON_TIME_UNIT')}. Expected DAYS"
                 )
 
+        # PROCESSOR_MODULE and PROCESSOR_TYPE are optional
+        self.processor_module = self.get_env_var("PROCESSOR_MODULE")
         self.processor_type = self.get_env_var("PROCESSOR_TYPE")
+
         self.messaging_constructor_params = ()
         self.num_threads = 1
 
