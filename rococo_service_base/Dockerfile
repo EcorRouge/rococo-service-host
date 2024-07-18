@@ -20,11 +20,19 @@ ENV EXECUTION_TYPE=MESSAGING \
 
 WORKDIR /app
 
+COPY ./use_local_deps_in_toml.py ./
 ONBUILD ARG  SVC_ROOT_DIR="./"
 ONBUILD COPY ${SVC_ROOT_DIR} ./
 
 ONBUILD ARG ENVIRONMENT=production
 ONBUILD RUN \
+    export ENVIRONMENT=${ENVIRONMENT} && \
+    python use_local_deps_in_toml.py ./pyproject.toml && \
+    \
+    echo "\n============ pyproject.toml (${ENVIRONMENT}) ============" && \
+    cat -n ./pyproject.toml && \
+    echo "\n============ pyproject.toml END =========================\n" && \
+    \
     touch README.md && \
     poetry install && \
     rm -rf $POETRY_CACHE_DIR
