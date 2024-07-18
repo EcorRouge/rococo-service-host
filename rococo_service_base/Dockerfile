@@ -21,6 +21,7 @@ ENV EXECUTION_TYPE=MESSAGING \
 WORKDIR /app
 
 COPY ./use_local_deps_in_toml.py ./
+
 ONBUILD ARG  SVC_ROOT_DIR="./"
 ONBUILD COPY ${SVC_ROOT_DIR} ./
 
@@ -34,6 +35,7 @@ ONBUILD RUN \
     echo "\n============ pyproject.toml END =========================\n" && \
     \
     touch README.md && \
+    rm -f ./poetry.lock && \
     poetry install && \
     rm -rf $POETRY_CACHE_DIR
 
