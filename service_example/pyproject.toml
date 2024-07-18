@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "src"
+name = "service-example"
 version = "0.1.513"
 description = ""
 authors = ["Matias Garafoni <matias.garafoni@gmail.com>"]

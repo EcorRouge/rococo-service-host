@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "src"
+name = "cron-run-at-example"
 version = "0.1.6"
 description = ""
 authors = ["Matias Garafoni <matias.garafoni@gmail.com>"]

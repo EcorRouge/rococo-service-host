@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "src"
+name = "rococo-svchost"
 version = "0.1.15"
 description = ""
 authors = ["Matias Garafoni <matias.garafoni@gmail.com>"]
