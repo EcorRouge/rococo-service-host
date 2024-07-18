@@ -2,27 +2,21 @@
 Main loop for service processor host
 """
 
-from logger import Logger
+from .logger import Logger
 import traceback
 from time import sleep
 import schedule
-from factories import get_message_adapter, get_service_processor
-from factories import Config
+from .factories import get_message_adapter, get_service_processor
+from .factories import Config
 
 logger = Logger().get_logger()
 
-if __name__ == '__main__':
+
+def main():
     try:
         config = Config()
-        try:
-            config.load_toml("/app/src/info",log_version_string=False)
-            logger.info("Rococo Service Host Version: %s",config.get_project_version())
-        finally:
-            pass
 
-        config.project_version = ""
-        config.load_toml("/app",log_version_string=False)
-        logger.info("Service Processor Version: %s",config.get_project_version())
+        logger.info("Service Processor Version: %s", "TO BE ADDED")
 
         if not config.validate_env_vars():
             raise ValueError("Invalid env configuration. Exiting program.")
@@ -83,3 +77,7 @@ if __name__ == '__main__':
     except Exception as e:  # pylint: disable=W0718
         logger.error(traceback.format_exc())
         logger.error(e)
+
+
+if __name__ == '__main__':
+    main()

@@ -5,7 +5,7 @@ import importlib
 from typing import Optional
 import traceback
 from rococo.messaging import BaseServiceProcessor
-from logger import Logger
+from ..logger import Logger
 from .config_factory import Config
 
 logger = Logger().get_logger()

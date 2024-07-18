@@ -2,7 +2,7 @@
 Host Config class
 """
 from rococo.config import BaseConfig
-from logger import Logger
+from ..logger import Logger
 
 logger = Logger().get_logger()
 

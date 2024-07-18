@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "service-example"
-version = "0.1.513"
+version = "1.0.0"
 description = ""
 authors = ["Matias Garafoni <matias.garafoni@gmail.com>"]
 readme = "README.md"
@@ -8,11 +8,10 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 pytest = "^7.4.3"
-rococo = "1.0.3"
-
+rococo = "^1.0"
+rococo-svchost = "^1.0"
+# locally you can use: rococo-svchost = { path = "../rococo_svchost/", develop = true }
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
-# THIS IS A PLACEHOLDER FILE

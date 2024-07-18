@@ -2,7 +2,7 @@
 Base example of a service processor
 """
 
-from logger import Logger
+from ..logger import Logger
 from rococo.messaging import BaseServiceProcessor
 
 # Configure logging
