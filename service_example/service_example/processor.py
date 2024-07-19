@@ -2,6 +2,8 @@
 Base example of a service processor within the child image
 """
 
+# If PyCharm warns that logger is unresolved, this is because it resolves rococo_svchost as a directory.
+# To resolve this, mark rococo_svchost dir as a SourcesRoot (right-click -> Mark directory as), then restart PyCharm.
 from rococo_svchost.logger import Logger
 from rococo.messaging import BaseServiceProcessor
 
