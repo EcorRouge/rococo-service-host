@@ -1,4 +1,4 @@
-FROM python:3.10
+FROM python:3.11
 
 WORKDIR /app
 
@@ -17,12 +17,12 @@ COPY pyproject.toml poetry.lock* ./
 
 COPY pyproject.toml /app/src/info/
 
-RUN poetry lock --no-update && poetry install
+RUN poetry lock && poetry install --no-root
 
 COPY ./src ./src
 COPY ./tests ./tests
 
-ENV PYTHONPATH /app
+ENV PYTHONPATH=/app
 
 ENV MESSAGING_TYPE=RabbitMqConnection
 ENV PROCESSOR_TYPE=LoggingServiceProcessor
