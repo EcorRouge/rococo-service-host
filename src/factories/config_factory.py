@@ -4,6 +4,9 @@ Host Config class
 from rococo.config import BaseConfig
 from logger import Logger
 
+from apscheduler.triggers.cron import CronTrigger
+
+
 logger = Logger().get_logger()
 
 
@@ -19,6 +22,7 @@ class Config(BaseConfig):
         self.messaging_constructor_params = ()
         self.num_threads = 1
         self.cron_time = ""
+        self.cron_expressions = []
         self.messaging_constructor_params = ()
         self.service_constructor_params = ()
 
@@ -39,30 +43,45 @@ class Config(BaseConfig):
                          self.get_env_var("PROCESSOR_MODULE"))
             return False
         if self.get_env_var("EXECUTION_TYPE") == "CRON":
-            if self.get_env_var("CRON_TIME_AMOUNT") is None:
-                logger.error("Invalid value for CRON_TIME_AMOUNT env var %s",
-                             self.get_env_var("CRON_TIME_AMOUNT"))
-                return False
-            try:
-                float(self.get_env_var("CRON_TIME_AMOUNT"))
-            except Exception as e:  # pylint: disable=W0718
-                logger.error("Exception %s. Invalid value for CRON_TIME_AMOUNT env var %s",
-                             e,
-                             self.get_env_var("CRON_TIME_AMOUNT"))
-                return False
-            valid_cron_units = ['seconds', 'minutes', 'hours', 'days', 'weeks']
-            if self.get_env_var("CRON_TIME_UNIT").lower() not in valid_cron_units:
-                logger.error("Invalid value for CRON_TIME_UNIT env var %s. Expected one of %s",
-                             self.get_env_var("CRON_TIME_UNIT").lower(),
-                             valid_cron_units)
-                return False
-            if self.get_env_var("CRON_RUN_AT") and self.get_env_var(
-                    "CRON_TIME_UNIT").lower() != 'days':
-                logger.error(
-                    f"Invalid cron configuration. Provided CRON_RUN_AT of "
-                    f"{self.get_env_var('CRON_RUN_AT')} while providing CRON_TIME_UNIT "
-                    f"of {self.get_env_var('CRON_TIME_UNIT')}. Expected DAYS"
-                )
+            # If CRON_EXPRESSIONS is provided, use it and ignore other CRON_* fields
+            if self.get_env_var("CRON_EXPRESSIONS"):
+                cron_expressions = self.get_env_var("CRON_EXPRESSIONS").split(",")
+                # Validate each expression in CRON_EXPRESSIONS
+                for cron_expression in cron_expressions:
+                    try:
+                        CronTrigger.from_crontab(cron_expression)
+                        self.cron_expressions.append(cron_expression)
+                    except ValueError as e:
+                        logger.error("Invalid expression in CRON_EXPRESSIONS %s. Exception: %s",
+                                     cron_expression, e)
+                        return False
+                logger.info("Using CRON_EXPRESSIONS: %s", cron_expressions)
+            else:
+                # Otherwise, validate the convenience CRON_* fields
+                if self.get_env_var("CRON_TIME_AMOUNT") is None:
+                    logger.error("Invalid value for CRON_TIME_AMOUNT env var %s",
+                                self.get_env_var("CRON_TIME_AMOUNT"))
+                    return False
+                try:
+                    float(self.get_env_var("CRON_TIME_AMOUNT"))
+                except Exception as e:  # pylint: disable=W0718
+                    logger.error("Exception %s. Invalid value for CRON_TIME_AMOUNT env var %s",
+                                e,
+                                self.get_env_var("CRON_TIME_AMOUNT"))
+                    return False
+                valid_cron_units = ['seconds', 'minutes', 'hours', 'days', 'weeks']
+                if self.get_env_var("CRON_TIME_UNIT").lower() not in valid_cron_units:
+                    logger.error("Invalid value for CRON_TIME_UNIT env var %s. Expected one of %s",
+                                self.get_env_var("CRON_TIME_UNIT").lower(),
+                                valid_cron_units)
+                    return False
+                if self.get_env_var("CRON_RUN_AT") and self.get_env_var(
+                        "CRON_TIME_UNIT").lower() != 'days':
+                    logger.error(
+                        f"Invalid cron configuration. Provided CRON_RUN_AT of "
+                        f"{self.get_env_var('CRON_RUN_AT')} while providing CRON_TIME_UNIT "
+                        f"of {self.get_env_var('CRON_TIME_UNIT')}. Expected DAYS"
+                    )
 
         self.processor_type = self.get_env_var("PROCESSOR_TYPE")
         self.messaging_constructor_params = ()

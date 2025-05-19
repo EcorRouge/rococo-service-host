@@ -6,6 +6,8 @@ from logger import Logger
 import traceback
 from time import sleep
 import schedule
+from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.triggers.cron import CronTrigger
 from factories import get_message_adapter, get_service_processor
 from factories import Config
 
@@ -51,8 +53,13 @@ if __name__ == '__main__':
                     )
                 else:
                     logger.error("Invalid config.messaging_type %s", config.messaging_type)
-        else: # if its cron
-            # Schedule the job to run every 30 seconds
+        elif config.cron_expressions:  # if its cron with cron expressions
+            scheduler = BlockingScheduler()
+            for expression in config.cron_expressions:
+                trigger = CronTrigger.from_crontab(expression)
+                scheduler.add_job(service_processor.process, trigger)
+            scheduler.start()
+        else: # if its simple cron
             unit = config.get_env_var("CRON_TIME_UNIT").lower()
             amount = float(config.get_env_var("CRON_TIME_AMOUNT"))
             if unit == "seconds":

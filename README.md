@@ -87,6 +87,7 @@ If you are making a processor based on cron execution, these are the only env va
 
 - PROCESSOR_MODULE=your.processor.module
 - EXECUTION_TYPE=CRON
+- CRON_EXPRESSIONS=one or more cron expressions. (example : CRON_EXPRESSIONS="* * * * *") If provided, the rest of the CRON_\* env vars are ignored.
 - CRON_TIME_AMOUNT=time_in_int_or_float    (example : CRON_TIME_AMOUNT=30 or CRON_TIME_AMOUNT=0.5 )
 - CRON_TIME_UNIT=time_in_units    (one of [SECONDS,MINUTES,HOURS,DAYS,WEEKS] , example = CRON_TIME_UNIT=SECONDS)
 
