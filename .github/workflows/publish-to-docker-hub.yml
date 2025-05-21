@@ -19,7 +19,9 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: Verify Docker login
-        run: docker info
+        run: |
+          docker info
+          docker pull python:3.10
 
       - name: Build and push for python-3.10 / latest
         uses: docker/build-push-action@v3
