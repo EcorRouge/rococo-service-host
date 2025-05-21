@@ -58,10 +58,22 @@ if __name__ == '__main__':
             for expression in config.cron_expressions:
                 trigger = CronTrigger.from_crontab(expression)
                 scheduler.add_job(service_processor.process, trigger)
+            
+            # Run at startup if configured
+            if config.run_at_startup:
+                logger.info("Running processor at startup as RUN_AT_STARTUP is set to true for cron with cron expressions")
+                service_processor.process()
+            
             scheduler.start()
         else: # if its simple cron
             unit = config.get_env_var("CRON_TIME_UNIT").lower()
             amount = float(config.get_env_var("CRON_TIME_AMOUNT"))
+            
+            # Run at startup if configured
+            if config.run_at_startup:
+                logger.info("Running processor at startup as RUN_AT_STARTUP is set to true for simple cron")
+                service_processor.process()
+            
             if unit == "seconds":
                 schedule.every(amount).seconds.do(service_processor.process)
             elif unit == "minutes":

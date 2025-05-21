@@ -23,6 +23,7 @@ class Config(BaseConfig):
         self.num_threads = 1
         self.cron_time = ""
         self.cron_expressions = []
+        self.run_at_startup = False
         self.messaging_constructor_params = ()
         self.service_constructor_params = ()
 
@@ -82,6 +83,15 @@ class Config(BaseConfig):
                         f"{self.get_env_var('CRON_RUN_AT')} while providing CRON_TIME_UNIT "
                         f"of {self.get_env_var('CRON_TIME_UNIT')}. Expected DAYS"
                     )
+                
+                # Validate RUN_AT_STARTUP if provided
+                if self.get_env_var("RUN_AT_STARTUP") is not None:
+                    run_at_startup = self.get_env_var("RUN_AT_STARTUP").lower()
+                    if run_at_startup not in ["true", "false"]:
+                        logger.error("Invalid value for RUN_AT_STARTUP env var %s. Expected 'true' or 'false'",
+                                    self.get_env_var("RUN_AT_STARTUP"))
+                        return False
+                    self.run_at_startup = bool(run_at_startup == "true")
 
         self.processor_type = self.get_env_var("PROCESSOR_TYPE")
         self.messaging_constructor_params = ()
