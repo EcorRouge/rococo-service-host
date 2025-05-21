@@ -87,10 +87,6 @@ class Config(BaseConfig):
                 # Validate RUN_AT_STARTUP if provided
                 if self.get_env_var("RUN_AT_STARTUP") is not None:
                     run_at_startup = self.get_env_var("RUN_AT_STARTUP").lower()
-                    if run_at_startup not in ["true", "false"]:
-                        logger.error("Invalid value for RUN_AT_STARTUP env var %s. Expected 'true' or 'false'",
-                                    self.get_env_var("RUN_AT_STARTUP"))
-                        return False
                     self.run_at_startup = bool(run_at_startup == "true")
 
         self.processor_type = self.get_env_var("PROCESSOR_TYPE")
