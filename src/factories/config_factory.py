@@ -19,7 +19,6 @@ class Config(BaseConfig):
         super().__init__()
         self.messaging_type = None
         self.processor_type = None
-        self.messaging_constructor_params = ()
         self.num_threads = 1
         self.cron_time = ""
         self.cron_expressions = []
@@ -46,7 +45,8 @@ class Config(BaseConfig):
         if self.get_env_var("EXECUTION_TYPE") == "CRON":
             # If CRON_EXPRESSIONS is provided, use it and ignore other CRON_* fields
             if self.get_env_var("CRON_EXPRESSIONS"):
-                cron_expressions = self.get_env_var("CRON_EXPRESSIONS").split(",")
+                cron_expressions = self.get_env_var(
+                    "CRON_EXPRESSIONS").split(",")
                 # Validate each expression in CRON_EXPRESSIONS
                 for cron_expression in cron_expressions:
                     try:
@@ -61,20 +61,21 @@ class Config(BaseConfig):
                 # Otherwise, validate the convenience CRON_* fields
                 if self.get_env_var("CRON_TIME_AMOUNT") is None:
                     logger.error("Invalid value for CRON_TIME_AMOUNT env var %s",
-                                self.get_env_var("CRON_TIME_AMOUNT"))
+                                 self.get_env_var("CRON_TIME_AMOUNT"))
                     return False
                 try:
                     float(self.get_env_var("CRON_TIME_AMOUNT"))
                 except Exception as e:  # pylint: disable=W0718
                     logger.error("Exception %s. Invalid value for CRON_TIME_AMOUNT env var %s",
-                                e,
-                                self.get_env_var("CRON_TIME_AMOUNT"))
+                                 e,
+                                 self.get_env_var("CRON_TIME_AMOUNT"))
                     return False
-                valid_cron_units = ['seconds', 'minutes', 'hours', 'days', 'weeks']
+                valid_cron_units = ['seconds',
+                                    'minutes', 'hours', 'days', 'weeks']
                 if self.get_env_var("CRON_TIME_UNIT").lower() not in valid_cron_units:
                     logger.error("Invalid value for CRON_TIME_UNIT env var %s. Expected one of %s",
-                                self.get_env_var("CRON_TIME_UNIT").lower(),
-                                valid_cron_units)
+                                 self.get_env_var("CRON_TIME_UNIT").lower(),
+                                 valid_cron_units)
                     return False
                 if self.get_env_var("CRON_RUN_AT") and self.get_env_var(
                         "CRON_TIME_UNIT").lower() != 'days':
@@ -83,7 +84,7 @@ class Config(BaseConfig):
                         f"{self.get_env_var('CRON_RUN_AT')} while providing CRON_TIME_UNIT "
                         f"of {self.get_env_var('CRON_TIME_UNIT')}. Expected DAYS"
                     )
-                
+
                 # Validate RUN_AT_STARTUP if provided
                 if self.get_env_var("RUN_AT_STARTUP") is not None:
                     run_at_startup = self.get_env_var("RUN_AT_STARTUP").lower()
@@ -106,7 +107,8 @@ class Config(BaseConfig):
                 )
                 if self.get_env_var("RABBITMQ_NUM_THREADS"):
                     try:
-                        self.num_threads = int(self.get_env_var("RABBITMQ_NUM_THREADS"))
+                        self.num_threads = int(
+                            self.get_env_var("RABBITMQ_NUM_THREADS"))
                     except TypeError:
                         logger.error("Invalid value for RABBITMQ_NUM_THREADS %s . Expected int",
                                      self.get_env_var("RABBITMQ_NUM_THREADS"))
@@ -114,8 +116,10 @@ class Config(BaseConfig):
             elif self.messaging_type == "SqsConnection":
                 self.messaging_constructor_params = (
                     self.get_env_var('AWS_ACCESS_KEY_ID'),
-                    self.get_env_var('AWS_ACCESS_KEY_SECRET') or self.get_env_var('AWS_SECRET_ACCESS_KEY'),
-                    self.get_env_var('AWS_REGION')
+                    self.get_env_var('AWS_ACCESS_KEY_SECRET') or self.get_env_var(
+                        'AWS_SECRET_ACCESS_KEY'),
+                    self.get_env_var('AWS_REGION'),
+                    self.get_env_var('CONSUME_CONFIG_FILE_PATH')
                 )
             else:
                 logger.error("Invalid MESSAGING_TYPE %s", self.messaging_type)

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "src"
-version = "0.1.20"
+version = "0.1.21"
 description = ""
 authors = ["Matias Garafoni <matias.garafoni@gmail.com>"]
 readme = "README.md"
