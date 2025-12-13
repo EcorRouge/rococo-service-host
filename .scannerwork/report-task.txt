@@ -1,6 +1,0 @@
-projectKey=rococo-service-host
-serverUrl=http://localhost:9001
-serverVersion=25.11.0.114957
-dashboardUrl=http://localhost:9001/dashboard?id=rococo-service-host
-ceTaskId=fa449469-372e-480f-9fd0-1d465638babc
-ceTaskUrl=http://localhost:9001/api/ce/task?id=fa449469-372e-480f-9fd0-1d465638babc
