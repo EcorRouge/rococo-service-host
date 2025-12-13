@@ -3,89 +3,84 @@
 .gitignore
 .gitattributes
 
-
-# CI
-.circleci
+# CI/CD
 .github
+.gitlab-ci.yml
 
-# Docker
-docker-compose.yml
-Dockerfile
-.docker
-.dockerignore
+# Documentation
+*.md
+!README.md
+docs/
 
-# Byte-compiled / optimized / DLL files
-**/__pycache__/
-**/*.py[cod]
+# IDE and Editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
 
-# C extensions
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
 *.so
-
-# Distribution / packaging
 .Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
 *.egg-info/
-.installed.cfg
+dist/
+build/
 *.egg
-
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
+.pytest_cache/
+.coverage
 htmlcov/
 .tox/
-.coverage
-.cache
-nosetests.xml
-coverage.xml
+.mypy_cache/
+.dmypy.json
+dmypy.json
 
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/
-
-# Virtual environment
-.env
-.venv/
+# Virtual environments
 venv/
+env/
 ENV/
-env.bak/
-venv.bak/
+.venv
 
-# PyCharm
-.idea
+# Environment and secrets
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+credentials/
 
-# Python mode for VIM
-.ropeproject
-**/.ropeproject
+# Backups and temporary files
+*.bak
+*.backup
+*.tmp
+*.old
+*.orig
+*.lock.backup
+*.lock.old
 
-# Vim swap files
-**/*.swp
+# Logs
+*.log
+logs/
 
-# VS Code
-.vscode/
+# SonarQube
+.scannerwork/
+sonar-project.properties
+sonar.sh
+
+# Docker
+Dockerfile*
+!Dockerfile
+docker-compose*.yml
+
+# Example directories (not needed in base image)
+service_example/
+cron_service_example/
+cron_run_at_example/
+
+# Pull request template
+pull_request_template.md
