@@ -6,17 +6,37 @@ on:
       - main
 
 jobs:
-  sonarqube:
+  test-and-sonarqube:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for better analysis
 
-      - name: SonarQube Install and Execute Analysis
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: SonarQube Analysis with Coverage
         env:
           SONAR_GLOBAL_TOKEN: ${{ secrets.SONAR_GLOBAL_TOKEN }}
           SONAR_GLOBAL_HOST: ${{ secrets.SONAR_GLOBAL_HOST }}
         run: |
+          echo "Installing Poetry..."
+          curl -sSL https://install.python-poetry.org | python3 -
+          export PATH="$HOME/.local/bin:$PATH"
+          
+          echo "Installing dependencies..."
+          poetry install
+          
+          echo "Running tests with coverage..."
+          poetry run pytest tests/ \
+            --cov=src \
+            --cov-report=xml \
+            --cov-report=term-missing
+          
           echo "Installing SonarScanner dependencies..."
           sudo apt-get update && sudo apt-get install -y openjdk-17-jre unzip
           
@@ -27,12 +47,18 @@ jobs:
           unzip -qq $HOME/.sonar/sonar-scanner.zip -d $HOME/.sonar/
           export PATH=$SONAR_SCANNER_HOME/bin:$PATH
           
-          echo "Running SonarQube Analysis..."
+          echo "Running SonarQube Analysis with Coverage..."
           sonar-scanner \
             -Dsonar.projectKey=rococo-service-host \
-            -Dsonar.sources=. \
+            -Dsonar.sources=src \
+            -Dsonar.tests=tests \
+            -Dsonar.python.coverage.reportPaths=coverage.xml \
             -Dsonar.host.url=$SONAR_GLOBAL_HOST \
             -Dsonar.token=$SONAR_GLOBAL_TOKEN \
-            -Dsonar.scm.disabled=true
+            -Dsonar.scm.disabled=true \
+            -Dsonar.exclusions=tests/**,**/__pycache__/**,**/*.pyc,**/test_*.py,**/*_test.py,**/conftest.py,service_example/**,cron_service_example/**,cron_run_at_example/** \
+            -Dsonar.coverage.exclusions=tests/**,**/__pycache__/**,**/*.pyc,**/test_*.py,**/*_test.py,**/conftest.py,src/version.py,src/services/__init__.py,service_example/**,cron_service_example/**,cron_run_at_example/** \
+            -Dsonar.test.exclusions=tests/** \
+            -Dsonar.python.version=3.11
           
           echo "✅ SonarQube scan completed successfully"
