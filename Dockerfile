@@ -5,7 +5,9 @@ WORKDIR /app
 
 # Install Poetry and verify installation
 RUN set -x \
-   && apt update \
+   && apt-get update \
+   && apt-get install -y --no-install-recommends curl ca-certificates \
+   && rm -rf /var/lib/apt/lists/* \
    && curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python \
    && cd /usr/local/bin \
    && ln -s /opt/poetry/bin/poetry \
