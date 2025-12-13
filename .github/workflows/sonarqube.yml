@@ -14,14 +14,16 @@ jobs:
         with:
           fetch-depth: 0  # Shallow clones should be disabled for better analysis
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
       - name: SonarQube Analysis with Coverage
         env:
           SONAR_GLOBAL_TOKEN: ${{ secrets.SONAR_GLOBAL_TOKEN }}
           SONAR_GLOBAL_HOST: ${{ secrets.SONAR_GLOBAL_HOST }}
         run: |
-          echo "Setting up Python 3.11..."
-          sudo apt-get update && sudo apt-get install -y python3.11 python3.11-venv python3-pip openjdk-17-jre unzip
-          
           echo "Installing Poetry..."
           curl -sSL https://install.python-poetry.org | python3 -
           export PATH="$HOME/.local/bin:$PATH"
@@ -34,6 +36,9 @@ jobs:
             --cov=src \
             --cov-report=xml \
             --cov-report=term-missing
+          
+          echo "Installing SonarScanner dependencies..."
+          sudo apt-get update && sudo apt-get install -y openjdk-17-jre unzip
           
           echo "Downloading SonarScanner..."
           export SONAR_SCANNER_VERSION=5.0.1.3006
