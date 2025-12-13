@@ -14,7 +14,7 @@ class LoggingServiceProcessor():  # pylint: disable=R0903
     Service processor that logs messages
     """
     def __init__(self):
-        pass
+        # Empty initialization - no state needed for this example processor
 
     def process(self):
         """Main processor loop"""

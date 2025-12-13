@@ -15,9 +15,9 @@ class Logger:
     def _init_logger(self):
         """Initialize logger"""
         # Create a custom logger
-        if not hasattr(self, 'logger'):
-            self.logger = logging.getLogger() # pylint: disable=W0201
-            self.logger.setLevel(logging.INFO)
+        if not hasattr(self, '_log_instance'):
+            self._log_instance = logging.getLogger() # pylint: disable=W0201
+            self._log_instance.setLevel(logging.INFO)
 
             # Create a formatter
             formatter = logging.Formatter(
@@ -28,8 +28,8 @@ class Logger:
             handler.setFormatter(formatter)
 
             # Add the handler to the logger
-            self.logger.addHandler(handler)
+            self._log_instance.addHandler(handler)
 
     def get_logger(self):
         """Returns the initialized logger"""
-        return self.logger
+        return self._log_instance

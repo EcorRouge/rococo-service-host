@@ -19,7 +19,8 @@ if __name__ == '__main__':
         try:
             config.load_toml("/app/src/info",log_version_string=False)
             logger.info("Rococo Service Host Version: %s",config.get_project_version())
-        finally:
+        except Exception:  # pylint: disable=W0718
+            # Version info is optional, continue without it
             pass
 
         config.project_version = ""
@@ -33,16 +34,7 @@ if __name__ == '__main__':
 
         if config.get_env_var("EXECUTION_TYPE") not in ["CRON"]: # if its a message processor
             with get_message_adapter(config) as message_adapter:
-                if config.messaging_type == "RabbitMqConnection":
-                    processor_class_name = config.get_env_var("PROCESSOR_TYPE")
-                    queue_name = config.get_env_var(
-                        "QUEUE_NAME_PREFIX")+config.get_env_var(
-                            f'{processor_class_name}_QUEUE_NAME')
-                    message_adapter.consume_messages(
-                        queue_name=queue_name,
-                        callback_function=service_processor.process
-                    )
-                elif config.messaging_type == "SqsConnection":
+                if config.messaging_type in ["RabbitMqConnection", "SqsConnection"]:
                     processor_class_name = config.get_env_var("PROCESSOR_TYPE")
                     queue_name = config.get_env_var(
                         "QUEUE_NAME_PREFIX")+config.get_env_var(
