@@ -8,7 +8,7 @@ RUN set -x \
    && apt-get update \
    && apt-get install -y --no-install-recommends curl ca-certificates \
    && rm -rf /var/lib/apt/lists/* \
-   && curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python \
+   && curl -sSL --proto '=https' --tlsv1.2 https://install.python-poetry.org | POETRY_HOME=/opt/poetry python \
    && cd /usr/local/bin \
    && ln -s /opt/poetry/bin/poetry \
    && poetry config virtualenvs.create false \
