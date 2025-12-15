@@ -1,5 +1,6 @@
 # Use the base image as a parent image
-FROM rococo-service-host
+ARG BASE_IMAGE_VERSION=0.1.21
+FROM rococo-service-host:${BASE_IMAGE_VERSION}
 
 # Set the working directory to /app
 WORKDIR /app
@@ -9,8 +10,12 @@ COPY ./__init__.py /app/src/services/__init__.py
 COPY ./processor.py /app/src/services/processor.py
 COPY ./pyproject.toml /app/pyproject.toml
 
-# Install dependencies using Poetry
-RUN poetry install
+# Install dependencies using Poetry and ensure proper ownership for the non-root user
+RUN poetry install \
+    && chown -R appuser:appuser /app
+
+# Switch to non-root user (inherited from base image)
+USER appuser
 
 ENV MESSAGING_TYPE=RabbitMqConnection
 ENV PROCESSOR_TYPE=ChildLoggingServiceProcessor
