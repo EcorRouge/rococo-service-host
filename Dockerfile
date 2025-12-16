@@ -3,19 +3,18 @@ FROM python:${PYTHON_VERSION}
 
 WORKDIR /app
 
-# Install Poetry and verify installation
 RUN set -x \
-   && apt-get update \
-   && apt-get install -y --no-install-recommends curl ca-certificates \
-   && rm -rf /var/lib/apt/lists/* \
-   && curl -sSL --proto '=https' --tlsv1.2 https://install.python-poetry.org | POETRY_HOME=/opt/poetry python \
-   && cd /usr/local/bin \
-   && ln -s /opt/poetry/bin/poetry \
-   && poetry config virtualenvs.create false \
-   && poetry --version
+   && apt update
 
-COPY pyproject.toml ./
-COPY poetry.lock ./
+# Install Poetry
+RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python && \
+    cd /usr/local/bin && \
+    ln -s /opt/poetry/bin/poetry && \
+    poetry config virtualenvs.create false
+
+RUN poetry --version
+
+COPY pyproject.toml poetry.lock* ./
 
 COPY pyproject.toml /app/src/info/
 
@@ -23,13 +22,6 @@ RUN poetry lock && poetry install --no-root
 
 COPY ./src ./src
 COPY ./tests ./tests
-
-# Create a non-root user for security
-RUN groupadd -r appuser && useradd -r -g appuser appuser \
-    && chown -R appuser:appuser /app
-
-# Switch to non-root user
-USER appuser
 
 ENV PYTHONPATH=/app
 

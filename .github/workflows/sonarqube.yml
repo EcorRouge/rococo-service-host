@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - revert-docker-file
 
 jobs:
   test-and-sonarqube:
@@ -56,7 +57,7 @@ jobs:
             -Dsonar.host.url=$SONAR_GLOBAL_HOST \
             -Dsonar.token=$SONAR_GLOBAL_TOKEN \
             -Dsonar.scm.disabled=true \
-            -Dsonar.exclusions=tests/**,**/__pycache__/**,**/*.pyc,**/test_*.py,**/*_test.py,**/conftest.py,service_example/**,cron_service_example/**,cron_run_at_example/** \
+            -Dsonar.exclusions=tests/**,**/__pycache__/**,**/*.pyc,**/test_*.py,**/*_test.py,**/conftest.py,service_example/**,cron_service_example/**,cron_run_at_example/**,**/Dockerfile \
             -Dsonar.coverage.exclusions=tests/**,**/__pycache__/**,**/*.pyc,**/test_*.py,**/*_test.py,**/conftest.py,src/version.py,src/services/__init__.py,service_example/**,cron_service_example/**,cron_run_at_example/** \
             -Dsonar.test.exclusions=tests/** \
             -Dsonar.python.version=3.11
