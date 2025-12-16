@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - revert-docker-file
 
 jobs:
   test-and-sonarqube:
