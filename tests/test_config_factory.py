@@ -1,8 +1,9 @@
 """
 Unit tests for config_factory.py
 """
+import json
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, mock_open
 import sys
 import os
 
@@ -660,6 +661,205 @@ class TestConfigFactory(unittest.TestCase):
         self.assertTrue(result)
         # Check that expressions are parsed (may have leading/trailing whitespace)
         self.assertEqual(len(self.config.cron_expressions), 2)
+
+
+    # --- CRON_JOBS tests ---
+
+    def test_validate_cron_jobs_single_with_expressions(self):
+        """Test valid CRON_JOBS with a single job using cron expressions"""
+        cron_jobs = json.dumps([{"cron_expressions": "0 0 * * *,0 12 * * *"}])
+        env_vars = {'EXECUTION_TYPE': 'CRON', 'CRON_JOBS': cron_jobs}
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        result = self.config._validate_cron_jobs(env_vars['CRON_JOBS'])
+        self.assertTrue(result)
+        self.assertEqual(len(self.config.cron_jobs), 1)
+        self.assertEqual(self.config.cron_jobs[0]["cron_expressions"], ["0 0 * * *", "0 12 * * *"])
+        self.assertEqual(self.config.cron_jobs[0]["method"], "process")
+        self.assertFalse(self.config.cron_jobs[0]["run_at_startup"])
+
+    def test_validate_cron_jobs_multiple_mixed(self):
+        """Test valid CRON_JOBS with multiple jobs mixing expressions and simple units"""
+        cron_jobs = json.dumps([
+            {"cron_expressions": "0 0 * * *", "method": "process_daily"},
+            {"cron_time_amount": 30, "cron_time_unit": "SECONDS", "method": "process_heartbeat"}
+        ])
+        env_vars = {'EXECUTION_TYPE': 'CRON', 'CRON_JOBS': cron_jobs}
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        result = self.config._validate_cron_jobs(env_vars['CRON_JOBS'])
+        self.assertTrue(result)
+        self.assertEqual(len(self.config.cron_jobs), 2)
+        self.assertEqual(self.config.cron_jobs[0]["method"], "process_daily")
+        self.assertEqual(self.config.cron_jobs[1]["cron_time_amount"], 30.0)
+        self.assertEqual(self.config.cron_jobs[1]["cron_time_unit"], "seconds")
+
+    def test_validate_cron_jobs_custom_method(self):
+        """Test CRON_JOBS preserves custom method values"""
+        cron_jobs = json.dumps([{"cron_expressions": "*/5 * * * *", "method": "my_custom_method"}])
+        env_vars = {'EXECUTION_TYPE': 'CRON', 'CRON_JOBS': cron_jobs}
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        result = self.config._validate_cron_jobs(env_vars['CRON_JOBS'])
+        self.assertTrue(result)
+        self.assertEqual(self.config.cron_jobs[0]["method"], "my_custom_method")
+
+    def test_validate_cron_jobs_run_at_startup_true(self):
+        """Test CRON_JOBS preserves run_at_startup: true"""
+        cron_jobs = json.dumps([{"cron_expressions": "0 0 * * *", "run_at_startup": True}])
+        env_vars = {'EXECUTION_TYPE': 'CRON', 'CRON_JOBS': cron_jobs}
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        result = self.config._validate_cron_jobs(env_vars['CRON_JOBS'])
+        self.assertTrue(result)
+        self.assertTrue(self.config.cron_jobs[0]["run_at_startup"])
+
+    def test_validate_cron_jobs_defaults(self):
+        """Test CRON_JOBS defaults: method='process', run_at_startup=False"""
+        cron_jobs = json.dumps([{"cron_expressions": "*/5 * * * *"}])
+        env_vars = {'EXECUTION_TYPE': 'CRON', 'CRON_JOBS': cron_jobs}
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        result = self.config._validate_cron_jobs(env_vars['CRON_JOBS'])
+        self.assertTrue(result)
+        self.assertEqual(self.config.cron_jobs[0]["method"], "process")
+        self.assertFalse(self.config.cron_jobs[0]["run_at_startup"])
+
+    def test_validate_cron_jobs_with_cron_run_at_days(self):
+        """Test CRON_JOBS with cron_run_at and cron_time_unit DAYS is valid"""
+        cron_jobs = json.dumps([{
+            "cron_time_amount": 1,
+            "cron_time_unit": "DAYS",
+            "cron_run_at": "02:00",
+            "method": "process_nightly"
+        }])
+        env_vars = {'EXECUTION_TYPE': 'CRON', 'CRON_JOBS': cron_jobs}
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        result = self.config._validate_cron_jobs(env_vars['CRON_JOBS'])
+        self.assertTrue(result)
+        self.assertEqual(self.config.cron_jobs[0]["cron_run_at"], "02:00")
+
+    def test_validate_cron_jobs_cron_run_at_non_days_invalid(self):
+        """Test CRON_JOBS with cron_run_at and non-days unit returns False"""
+        cron_jobs = json.dumps([{
+            "cron_time_amount": 5,
+            "cron_time_unit": "HOURS",
+            "cron_run_at": "02:00"
+        }])
+        env_vars = {'EXECUTION_TYPE': 'CRON', 'CRON_JOBS': cron_jobs}
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        result = self.config._validate_cron_jobs(env_vars['CRON_JOBS'])
+        self.assertFalse(result)
+
+    def test_validate_cron_jobs_invalid_json(self):
+        """Test CRON_JOBS with invalid JSON returns False"""
+        env_vars = {'EXECUTION_TYPE': 'CRON', 'CRON_JOBS': 'not valid json'}
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        result = self.config._validate_cron_jobs(env_vars['CRON_JOBS'])
+        self.assertFalse(result)
+
+    def test_validate_cron_jobs_invalid_cron_expression(self):
+        """Test CRON_JOBS with invalid cron expression returns False"""
+        cron_jobs = json.dumps([{"cron_expressions": "invalid_cron"}])
+        env_vars = {'EXECUTION_TYPE': 'CRON', 'CRON_JOBS': cron_jobs}
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        result = self.config._validate_cron_jobs(env_vars['CRON_JOBS'])
+        self.assertFalse(result)
+
+    def test_validate_cron_jobs_invalid_time_unit(self):
+        """Test CRON_JOBS with invalid cron_time_unit returns False"""
+        cron_jobs = json.dumps([{"cron_time_amount": 5, "cron_time_unit": "INVALID"}])
+        env_vars = {'EXECUTION_TYPE': 'CRON', 'CRON_JOBS': cron_jobs}
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        result = self.config._validate_cron_jobs(env_vars['CRON_JOBS'])
+        self.assertFalse(result)
+
+    def test_validate_cron_jobs_takes_priority_over_expressions(self):
+        """Test CRON_JOBS takes priority over CRON_EXPRESSIONS"""
+        cron_jobs = json.dumps([{"cron_expressions": "*/5 * * * *", "method": "my_method"}])
+        env_vars = {
+            'EXECUTION_TYPE': 'CRON',
+            'CRON_JOBS': cron_jobs,
+            'CRON_EXPRESSIONS': '0 0 * * *'
+        }
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        result = self.config._validate_cron_config()
+        self.assertTrue(result)
+        self.assertEqual(len(self.config.cron_jobs), 1)
+        self.assertEqual(self.config.cron_jobs[0]["method"], "my_method")
+        self.assertEqual(self.config.cron_expressions, [])
+
+    def test_validate_cron_config_backward_compat_without_cron_jobs(self):
+        """Test backward compatibility: CRON_EXPRESSIONS still works when CRON_JOBS is not set"""
+        env_vars = {
+            'EXECUTION_TYPE': 'CRON',
+            'CRON_EXPRESSIONS': '0 0 * * *'
+        }
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        result = self.config._validate_cron_config()
+        self.assertTrue(result)
+        self.assertEqual(len(self.config.cron_expressions), 1)
+        self.assertEqual(self.config.cron_jobs, [])
+
+    # --- CRON_JOBS_FILE tests ---
+
+    def test_cron_jobs_file_valid(self):
+        """Test CRON_JOBS_FILE points to a valid JSON file"""
+        file_content = json.dumps([{"cron_expressions": "*/5 * * * *", "method": "process"}])
+        env_vars = {
+            'EXECUTION_TYPE': 'CRON',
+            'CRON_JOBS_FILE': '/path/to/cron_jobs.json'
+        }
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        with patch("builtins.open", mock_open(read_data=file_content)):
+            result = self.config._validate_cron_config()
+        self.assertTrue(result)
+        self.assertEqual(len(self.config.cron_jobs), 1)
+        self.assertEqual(self.config.cron_jobs[0]["method"], "process")
+
+    def test_cron_jobs_file_not_found(self):
+        """Test CRON_JOBS_FILE points to a nonexistent path"""
+        env_vars = {
+            'EXECUTION_TYPE': 'CRON',
+            'CRON_JOBS_FILE': '/nonexistent/cron_jobs.json'
+        }
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        with patch("builtins.open", side_effect=FileNotFoundError("No such file")):
+            result = self.config._validate_cron_config()
+        self.assertFalse(result)
+
+    def test_cron_jobs_file_read_error(self):
+        """Test CRON_JOBS_FILE set but file unreadable"""
+        env_vars = {
+            'EXECUTION_TYPE': 'CRON',
+            'CRON_JOBS_FILE': '/path/to/unreadable.json'
+        }
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        with patch("builtins.open", side_effect=OSError("Permission denied")):
+            result = self.config._validate_cron_config()
+        self.assertFalse(result)
+
+    def test_cron_jobs_env_takes_priority_over_file(self):
+        """Test CRON_JOBS env var takes priority over CRON_JOBS_FILE"""
+        inline_jobs = json.dumps([{"cron_expressions": "0 0 * * *", "method": "inline_method"}])
+        env_vars = {
+            'EXECUTION_TYPE': 'CRON',
+            'CRON_JOBS': inline_jobs,
+            'CRON_JOBS_FILE': '/path/to/cron_jobs.json'
+        }
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        with patch("builtins.open") as mock_file:
+            result = self.config._validate_cron_config()
+            mock_file.assert_not_called()
+        self.assertTrue(result)
+        self.assertEqual(self.config.cron_jobs[0]["method"], "inline_method")
+
+    def test_neither_cron_jobs_nor_file_falls_through(self):
+        """Test neither CRON_JOBS nor CRON_JOBS_FILE set falls through to CRON_EXPRESSIONS"""
+        env_vars = {
+            'EXECUTION_TYPE': 'CRON',
+            'CRON_EXPRESSIONS': '0 0 * * *'
+        }
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        result = self.config._validate_cron_config()
+        self.assertTrue(result)
+        self.assertEqual(len(self.config.cron_expressions), 1)
+        self.assertEqual(self.config.cron_jobs, [])
 
 
 if __name__ == '__main__':

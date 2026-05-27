@@ -8,6 +8,7 @@ from time import sleep
 import schedule
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 from factories import get_message_adapter, get_service_processor
 from factories import Config
 
@@ -39,6 +40,37 @@ def _process_cron_expressions(config, service_processor):
         logger.info("Running processor at startup as RUN_AT_STARTUP is set to true for cron with cron expressions")
         service_processor.process()
     
+    scheduler.start()
+
+def _process_cron_jobs(config, service_processor):
+    scheduler = BlockingScheduler()
+    for job in config.cron_jobs:
+        method_name = job["method"]
+        if not hasattr(service_processor, method_name):
+            raise AttributeError(
+                f"Processor {type(service_processor).__name__} has no method '{method_name}'"
+            )
+        callable_method = getattr(service_processor, method_name)
+
+        if "cron_expressions" in job:
+            for expression in job["cron_expressions"]:
+                trigger = CronTrigger.from_crontab(expression)
+                scheduler.add_job(callable_method, trigger)
+        elif job.get("cron_run_at"):
+            parts = job["cron_run_at"].split(":")
+            hour, minute = int(parts[0]), int(parts[1])
+            trigger = CronTrigger(hour=hour, minute=minute)
+            scheduler.add_job(callable_method, trigger)
+        else:
+            unit = job["cron_time_unit"]
+            amount = job["cron_time_amount"]
+            trigger = IntervalTrigger(**{unit: amount})
+            scheduler.add_job(callable_method, trigger)
+
+        if job["run_at_startup"]:
+            logger.info("Running %s at startup", method_name)
+            callable_method()
+
     scheduler.start()
 
 def _process_simple_cron(config, service_processor):
@@ -92,6 +124,8 @@ def main():
 
         if config.get_env_var("EXECUTION_TYPE") not in ["CRON"]: # if its a message processor
             _process_messages(config, service_processor)
+        elif config.cron_jobs:  # if its cron with multiple jobs
+            _process_cron_jobs(config, service_processor)
         elif config.cron_expressions:  # if its cron with cron expressions
             _process_cron_expressions(config, service_processor)
         else: # if its simple cron
