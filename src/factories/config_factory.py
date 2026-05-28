@@ -1,6 +1,7 @@
 """
 Host Config class
 """
+import json
 from rococo.config import BaseConfig
 from logger import Logger
 
@@ -23,6 +24,7 @@ class Config(BaseConfig):
         self.cron_time = ""
         self.cron_expressions = []
         self.run_at_startup = False
+        self.cron_jobs = []
         self.messaging_constructor_params = ()
         self.service_constructor_params = ()
 
@@ -116,10 +118,109 @@ class Config(BaseConfig):
         self._validate_run_at_startup()
         return True
 
+    def _resolve_cron_jobs_raw(self):
+        """Resolve the raw CRON_JOBS JSON string from env var or file."""
+        inline = self.get_env_var("CRON_JOBS")
+        if inline:
+            return inline
+
+        file_path = self.get_env_var("CRON_JOBS_FILE")
+        if file_path:
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    return f.read()
+            except FileNotFoundError:
+                logger.error("CRON_JOBS_FILE path does not exist: %s", file_path)
+                return False
+            except OSError as e:
+                logger.error("Failed to read CRON_JOBS_FILE '%s': %s", file_path, e)
+                return False
+
+        return None
+
+    def _validate_cron_jobs(self, raw: str) -> bool:
+        """Validate CRON_JOBS JSON string (list of job definitions)"""
+        try:
+            jobs = json.loads(raw)
+        except (json.JSONDecodeError, TypeError) as e:
+            logger.error("Invalid JSON in CRON_JOBS: %s", e)
+            return False
+
+        if not isinstance(jobs, list):
+            logger.error("CRON_JOBS must be a JSON list")
+            return False
+
+        valid_cron_units = ['seconds', 'minutes', 'hours', 'days', 'weeks']
+        validated_jobs = []
+
+        for i, job in enumerate(jobs):
+            has_expressions = "cron_expressions" in job
+            has_simple = "cron_time_amount" in job or "cron_time_unit" in job
+
+            if has_expressions and has_simple:
+                logger.error("CRON_JOBS[%d]: cannot specify both cron_expressions and cron_time_amount/cron_time_unit", i)
+                return False
+
+            if not has_expressions and not has_simple:
+                logger.error("CRON_JOBS[%d]: must specify either cron_expressions or cron_time_amount/cron_time_unit", i)
+                return False
+
+            method = job.get("method", "process")
+            run_at_startup = job.get("run_at_startup", False)
+
+            if has_expressions:
+                expressions_str = job["cron_expressions"]
+                expressions = [e.strip() for e in expressions_str.split(",")]
+                for expr in expressions:
+                    try:
+                        CronTrigger.from_crontab(expr)
+                    except ValueError as e:
+                        logger.error("CRON_JOBS[%d]: invalid cron expression '%s': %s", i, expr, e)
+                        return False
+                validated_jobs.append({
+                    "method": method,
+                    "run_at_startup": run_at_startup,
+                    "cron_expressions": expressions,
+                })
+            else:
+                if "cron_time_amount" not in job or "cron_time_unit" not in job:
+                    logger.error("CRON_JOBS[%d]: both cron_time_amount and cron_time_unit are required", i)
+                    return False
+                try:
+                    amount = float(job["cron_time_amount"])
+                except (ValueError, TypeError) as e:
+                    logger.error("CRON_JOBS[%d]: invalid cron_time_amount: %s", i, e)
+                    return False
+                unit = str(job["cron_time_unit"]).lower()
+                if unit not in valid_cron_units:
+                    logger.error("CRON_JOBS[%d]: invalid cron_time_unit '%s'. Expected one of %s", i, unit, valid_cron_units)
+                    return False
+                cron_run_at = job.get("cron_run_at")
+                if cron_run_at and unit != "days":
+                    logger.error("CRON_JOBS[%d]: cron_run_at is only valid when cron_time_unit is 'days'", i)
+                    return False
+                validated_jobs.append({
+                    "method": method,
+                    "run_at_startup": run_at_startup,
+                    "cron_time_amount": amount,
+                    "cron_time_unit": unit,
+                    "cron_run_at": cron_run_at,
+                })
+
+        self.cron_jobs = validated_jobs
+        logger.info("Using CRON_JOBS: %s", validated_jobs)
+        return True
+
     def _validate_cron_config(self) -> bool:
         """Validate CRON configuration"""
         if self.get_env_var("EXECUTION_TYPE") != "CRON":
             return True
+
+        raw = self._resolve_cron_jobs_raw()
+        if raw is False:
+            return False
+        if raw is not None:
+            return self._validate_cron_jobs(raw)
 
         if self.get_env_var("CRON_EXPRESSIONS"):
             return self._validate_cron_expressions()
