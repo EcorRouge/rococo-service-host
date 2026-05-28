@@ -95,3 +95,52 @@ If you are making a processor based on cron execution, these are the only env va
 An example setup of a cron processor image is at "/cron_service_example"
 
 Naturally, you wont need a RabbitMQ server nor listener for a cron processor, so the processor doesn't need a class that extends BaseServiceProcessor from rococo messaging.
+
+### Multiple cron jobs (CRON_JOBS)
+
+To run multiple independent cron jobs within a single service, use the `CRON_JOBS` env var with a JSON list of job definitions. Each job can invoke a different method on the processor class.
+
+When `CRON_JOBS` is set, the single-job env vars (`CRON_EXPRESSIONS`, `CRON_TIME_AMOUNT`, `CRON_TIME_UNIT`, `CRON_RUN_AT`, `RUN_AT_STARTUP`) are ignored entirely.
+
+Example:
+```json
+CRON_JOBS='[
+  {
+    "cron_expressions": "0 0 * * *,0 12 * * *",
+    "method": "process_daily",
+    "run_at_startup": true
+  },
+  {
+    "cron_time_amount": 30,
+    "cron_time_unit": "SECONDS",
+    "method": "process_heartbeat"
+  },
+  {
+    "cron_time_amount": 1,
+    "cron_time_unit": "DAYS",
+    "cron_run_at": "02:00",
+    "method": "process_nightly_cleanup"
+  },
+  {
+    "cron_expressions": "*/5 * * * *"
+  }
+]'
+```
+
+Each job object supports:
+- **`cron_expressions`** (string) — One or more comma-separated cron expressions. Mutually exclusive with `cron_time_amount`/`cron_time_unit`.
+- **`cron_time_amount`** (number) + **`cron_time_unit`** (string) — Simple interval scheduling. Same units as the single-job env vars (`SECONDS`, `MINUTES`, `HOURS`, `DAYS`, `WEEKS`).
+- **`cron_run_at`** (string, optional) — Time of day to run (e.g. `"02:00"`). Only valid when `cron_time_unit` is `"DAYS"`.
+- **`method`** (string, optional) — The method to call on the processor. Defaults to `"process"`.
+- **`run_at_startup`** (boolean, optional) — If `true`, the method runs immediately at service start. Defaults to `false`.
+
+#### Loading from a file (CRON_JOBS_FILE)
+
+As an alternative to the inline `CRON_JOBS` env var, you can point `CRON_JOBS_FILE` to a JSON file containing the same list of job definitions:
+
+```
+CRON_JOBS_FILE=/path/to/cron_jobs.json
+```
+
+- If both `CRON_JOBS` and `CRON_JOBS_FILE` are set, `CRON_JOBS` takes priority.
+- If `CRON_JOBS_FILE` is set but the file does not exist or cannot be read, validation will fail with a clear error.
