@@ -3,6 +3,7 @@ Unit tests for process.py
 """
 import unittest
 from unittest.mock import MagicMock, patch, call
+from datetime import timedelta
 import sys
 import os
 
@@ -108,6 +109,30 @@ class TestProcessCronJobs(unittest.TestCase):
 
         with self.assertRaises(AttributeError):
             _process_cron_jobs(config, processor)
+
+    @patch('process.BlockingScheduler')
+    def test_process_cron_jobs_run_at_uses_interval_trigger(self, mock_scheduler_cls):
+        """Test _process_cron_jobs uses IntervalTrigger with correct days and start_date when cron_run_at is set"""
+        from process import _process_cron_jobs
+        from apscheduler.triggers.interval import IntervalTrigger
+
+        mock_scheduler = MagicMock()
+        mock_scheduler_cls.return_value = mock_scheduler
+
+        config = MagicMock()
+        config.cron_jobs = [
+            {"method": "process", "run_at_startup": False, "cron_run_at": "02:00", "cron_time_amount": 3, "cron_time_unit": "days"},
+        ]
+        processor = MagicMock()
+
+        _process_cron_jobs(config, processor)
+
+        mock_scheduler.add_job.assert_called_once()
+        trigger = mock_scheduler.add_job.call_args[0][1]
+        self.assertIsInstance(trigger, IntervalTrigger)
+        self.assertEqual(trigger.interval, timedelta(days=3))
+        self.assertEqual(trigger.start_date.hour, 2)
+        self.assertEqual(trigger.start_date.minute, 0)
 
     @patch('process.get_service_processor')
     @patch('process.Config')

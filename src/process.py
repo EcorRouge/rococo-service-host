@@ -4,6 +4,7 @@ Main loop for service processor host
 
 from logger import Logger
 import traceback
+from datetime import datetime, time, timedelta
 from time import sleep
 import schedule
 from apscheduler.schedulers.blocking import BlockingScheduler
@@ -59,7 +60,13 @@ def _process_cron_jobs(config, service_processor):
         elif job.get("cron_run_at"):
             parts = job["cron_run_at"].split(":")
             hour, minute = int(parts[0]), int(parts[1])
-            trigger = CronTrigger(hour=hour, minute=minute)
+            amount = job["cron_time_amount"]
+            run_time = time(hour, minute)
+            now = datetime.now()
+            start_date = datetime.combine(now.date(), run_time)
+            if start_date <= now:
+                start_date += timedelta(days=1)
+            trigger = IntervalTrigger(days=amount, start_date=start_date)
             scheduler.add_job(callable_method, trigger)
         else:
             unit = job["cron_time_unit"]
