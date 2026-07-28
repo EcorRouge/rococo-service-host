@@ -144,3 +144,28 @@ CRON_JOBS_FILE=/path/to/cron_jobs.json
 
 - If both `CRON_JOBS` and `CRON_JOBS_FILE` are set, `CRON_JOBS` takes priority.
 - If `CRON_JOBS_FILE` is set but the file does not exist or cannot be read, validation will fail with a clear error.
+
+## Observability (optional)
+
+Observability is entirely opt-in and off by default: if `OBSERVABILITY_PROVIDER`
+is not set, nothing is instrumented and the service behaves exactly as before.
+
+To enable it, set `OBSERVABILITY_PROVIDER` plus the env vars that provider
+requires. Currently the only provider is `open_observe`:
+
+- `OBSERVABILITY_PROVIDER=open_observe`
+- `OO_BASE_URL=http://your-openobserve:5080`
+- `OO_ORG_ID=your_org`
+- `OO_INGESTION_TOKEN=your_token`
+- `SERVICE_NAME=your-service` (required — used to tag logs and traces)
+- `APP_ENV=dev|staging|production` (optional, defaults to `production`)
+
+When enabled, the host ships logs to the provider and wraps the processor's
+`process` method — plus any method named in `CRON_JOBS` — in a trace span, so
+processors need no code changes to be traced. Database calls made through
+rococo's `PostgreSQLRepository` are traced as well.
+
+If any required env var is missing, the provider name is unknown, the
+observability extras aren't installed, or provider setup fails for any other
+reason, the host logs the problem and keeps running without observability —
+it never takes the service down.
