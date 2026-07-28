@@ -28,6 +28,79 @@ class Config(BaseConfig):
         self.messaging_constructor_params = ()
         self.service_constructor_params = ()
 
+        # Observability — provider-agnostic. Enabled implicitly based on
+        # whether OBSERVABILITY_PROVIDER is set AND all env vars that
+        # provider's own REQUIRED_CONFIG_KEYS declares are present.
+        self.observability_enabled = False
+        self.observability_provider = None
+        self.observability_config = {}
+
+    def _setup_observability_params(self):
+        """
+        Provider-agnostic observability setup. Reads OBSERVABILITY_PROVIDER
+        to determine which provider class to use (see rococo.observability
+        .PROVIDERS), then asks that class's own REQUIRED_CONFIG_KEYS for
+        which env vars it needs — Config never hardcodes provider-specific
+        env var names, so adding a new provider (Datadog, etc.) later
+        requires zero changes here.
+        """
+        provider_name = self.get_env_var("OBSERVABILITY_PROVIDER")
+        if not provider_name:
+            logger.info("OBSERVABILITY_PROVIDER not set — observability disabled.")
+            self.observability_enabled = False
+            return
+
+        try:
+            from rococo.observability import get_observability_provider
+        except ImportError:
+            logger.warning(
+                "OBSERVABILITY_PROVIDER=%s set but observability extras "
+                "aren't installed — skipping.", provider_name
+            )
+            self.observability_enabled = False
+            return
+
+        try:
+            provider_class = get_observability_provider(provider_name)
+        except ValueError as e:
+            logger.error(str(e))
+            self.observability_enabled = False
+            return
+
+        required_keys = getattr(provider_class, "REQUIRED_CONFIG_KEYS", ())
+        config = {key: self.get_env_var(key) for key in required_keys}
+
+        missing = [key for key, value in config.items() if not value]
+        if missing:
+            logger.info(
+                "Observability provider '%s' not enabled — missing env var(s): %s",
+                provider_name, ", ".join(missing),
+            )
+            self.observability_enabled = False
+            return
+
+        # Common optional fields every provider reads off its own config dict,
+        # layered on top of whatever provider-specific keys were collected
+        # above. Names match the env vars the providers look up.
+        config["SERVICE_NAME"] = self.get_env_var("SERVICE_NAME")
+        config["APP_ENV"] = self.get_env_var("APP_ENV") or "production"
+
+        if not config["SERVICE_NAME"]:
+            logger.info(
+                "Observability provider '%s' not enabled — SERVICE_NAME is required.",
+                provider_name,
+            )
+            self.observability_enabled = False
+            return
+
+        self.observability_provider = provider_name
+        self.observability_config = config
+        self.observability_enabled = True
+        logger.info(
+            "Observability provider '%s' enabled for service_name=%s",
+            provider_name, config["SERVICE_NAME"],
+        )
+
     def _validate_messaging_and_execution_type(self) -> bool:
         """Validate MESSAGING_TYPE and EXECUTION_TYPE environment variables"""
         if (self.get_env_var("EXECUTION_TYPE")
@@ -287,6 +360,8 @@ class Config(BaseConfig):
 
         if not self._setup_messaging_params():
             return False
+
+        self._setup_observability_params()
 
         self.service_constructor_params = ()
         return True

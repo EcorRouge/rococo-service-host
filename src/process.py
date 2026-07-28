@@ -6,6 +6,7 @@ from logger import Logger
 import traceback
 from datetime import datetime, time, timedelta
 from time import sleep
+from functools import wraps
 import schedule
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -14,6 +15,127 @@ from factories import get_message_adapter, get_service_processor
 from factories import Config
 
 logger = Logger().get_logger()
+
+
+def _maybe_get_observability(config):
+    """
+    Instantiates whichever observability provider was configured (if any).
+    Returns None if observability isn't enabled, or if the extras for the
+    configured provider aren't installed.
+    """
+    if not config.observability_enabled:
+        return None
+    try:
+        from rococo.observability import get_observability_provider
+    except ImportError:
+        logger.warning("Observability enabled but extras aren't installed — skipping.")
+        return None
+
+    try:
+        provider_class = get_observability_provider(config.observability_provider)
+        return provider_class(**config.observability_config)
+    except Exception:  # pylint: disable=W0718
+        # Observability is never worth taking the service down for.
+        logger.error(
+            "Failed to initialize observability provider '%s' — continuing without it.\n%s",
+            config.observability_provider, traceback.format_exc(),
+        )
+        return None
+
+
+def _traced_callable(observability, callable_fn, span_name):
+    """
+    Wraps a single callable in a span, if tracing is available. Returns the
+    callable untouched when the tracing extras are missing or the tracer
+    provider can't be built, so a service is never broken by tracing.
+    """
+    try:
+        from opentelemetry import trace
+        from opentelemetry.trace import Status, StatusCode
+    except ImportError:
+        logger.warning("Tracing extras aren't installed — %s not instrumented.", span_name)
+        return callable_fn
+
+    try:
+        observability.get_tracer_provider()   # registers once, no-ops if already done
+    except Exception:  # pylint: disable=W0718
+        logger.error(
+            "Could not set up the tracer provider — %s not instrumented.\n%s",
+            span_name, traceback.format_exc(),
+        )
+        return callable_fn
+
+    tracer = trace.get_tracer(__name__)
+
+    @wraps(callable_fn)
+    def wrapper(*args, **kwargs):
+        with tracer.start_as_current_span(span_name) as span:
+            try:
+                return callable_fn(*args, **kwargs)
+            except Exception as e:
+                span.record_exception(e)
+                span.set_status(Status(StatusCode.ERROR, str(e)))
+                raise
+    return wrapper
+
+
+def _instrument_service_processor(service_processor, observability, config):
+    """
+    Monkey-patches service_processor's own bound methods in place, once,
+    at startup — so every _process_* dispatch function can keep calling
+    service_processor.process (or whatever job method) completely
+    unmodified, with no awareness that tracing exists at all.
+
+    Wraps "process" (used by message consumption, simple cron, and cron
+    expressions) plus every distinct method name referenced in
+    config.cron_jobs (used by _process_cron_jobs, which can call methods
+    other than "process").
+    """
+    if observability is None:
+        return
+
+    method_names = {"process"}
+    for job in (config.cron_jobs or []):
+        method_names.add(job.get("method", "process"))
+
+    processor_class_name = service_processor.__class__.__name__
+
+    for name in method_names:
+        if not hasattr(service_processor, name):
+            continue
+        original = getattr(service_processor, name)
+        span_name = f"{processor_class_name}.{name}"
+        traced = _traced_callable(observability, original, span_name)
+        setattr(service_processor, name, traced)
+        logger.info("Instrumented %s with tracing", span_name)
+
+
+def _setup_observability(config, service_processor):
+    """
+    Wires up logging + tracing for the configured provider, if any. Any
+    failure is logged and swallowed — observability is strictly additive and
+    must never stop the service from processing work.
+    """
+    try:
+        observability = _maybe_get_observability(config)
+        if observability is None:
+            return None
+
+        logger.addHandler(observability.get_logging_handler())
+        try:
+            from rococo.repositories.postgresql import PostgreSQLRepository
+            observability.enable_class_tracing(PostgreSQLRepository)
+        except ImportError:
+            pass
+
+        _instrument_service_processor(service_processor, observability, config)
+        return observability
+    except Exception:  # pylint: disable=W0718
+        logger.error(
+            "Observability setup failed — continuing without it.\n%s",
+            traceback.format_exc(),
+        )
+        return None
 
 
 def _process_messages(config, service_processor):
@@ -35,12 +157,12 @@ def _process_cron_expressions(config, service_processor):
     for expression in config.cron_expressions:
         trigger = CronTrigger.from_crontab(expression)
         scheduler.add_job(service_processor.process, trigger)
-    
+
     # Run at startup if configured
     if config.run_at_startup:
         logger.info("Running processor at startup as RUN_AT_STARTUP is set to true for cron with cron expressions")
         service_processor.process()
-    
+
     scheduler.start()
 
 def _process_cron_jobs(config, service_processor):
@@ -83,12 +205,12 @@ def _process_cron_jobs(config, service_processor):
 def _process_simple_cron(config, service_processor):
     unit = config.get_env_var("CRON_TIME_UNIT").lower()
     amount = float(config.get_env_var("CRON_TIME_AMOUNT"))
-    
+
     # Run at startup if configured
     if config.run_at_startup:
         logger.info("Running processor at startup as RUN_AT_STARTUP is set to true for simple cron")
         service_processor.process()
-    
+
     if unit == "seconds":
         schedule.every(amount).seconds.do(service_processor.process)
     elif unit == "minutes":
@@ -128,6 +250,11 @@ def main():
             raise ValueError("Invalid env configuration. Exiting program.")
 
         service_processor = get_service_processor(config)
+
+        # Observability — set up once, here. If enabled, this patches
+        # service_processor's own methods in place. Failures here are logged
+        # and swallowed: a service must still run without observability.
+        _setup_observability(config, service_processor)
 
         if config.get_env_var("EXECUTION_TYPE") not in ["CRON"]: # if its a message processor
             _process_messages(config, service_processor)

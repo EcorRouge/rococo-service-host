@@ -13,6 +13,26 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from process import main
 
+
+def _config_mock(**overrides):
+    """
+    A Config mock with every attribute main() branches on defaulted to "off".
+
+    A bare MagicMock returns a truthy MagicMock for any attribute, so main()
+    would dispatch to the multi-cron-job branch and observability setup would
+    run no matter what a test is actually exercising. Tests override only the
+    attributes relevant to the branch under test.
+    """
+    config = MagicMock()
+    config.cron_jobs = []
+    config.cron_expressions = []
+    config.run_at_startup = False
+    config.observability_enabled = False
+    for name, value in overrides.items():
+        setattr(config, name, value)
+    return config
+
+
 class TestProcessMain(unittest.TestCase):
     """Test cases for process.py main()"""
 
@@ -23,7 +43,7 @@ class TestProcessMain(unittest.TestCase):
     def test_main_message_execution_rabbitmq(self, mock_logger, mock_get_adapter, mock_get_processor, mock_config_cls):
         """Test main execution with RabbitMQ message processor"""
         # Setup mocks
-        mock_config = MagicMock()
+        mock_config = _config_mock()
         mock_config_cls.return_value = mock_config
         mock_config.validate_env_vars.return_value = True
         mock_config.get_env_var.side_effect = lambda key: {
@@ -58,7 +78,7 @@ class TestProcessMain(unittest.TestCase):
     def test_main_message_execution_invalid_messaging_type(self, mock_logger, mock_get_adapter, mock_get_processor, mock_config_cls):
         """Test main execution with invalid messaging type"""
         # Setup mocks
-        mock_config = MagicMock()
+        mock_config = _config_mock()
         mock_config_cls.return_value = mock_config
         mock_config.validate_env_vars.return_value = True
         mock_config.get_env_var.side_effect = lambda key: {
@@ -81,7 +101,7 @@ class TestProcessMain(unittest.TestCase):
     def test_main_cron_expressions(self, mock_logger, mock_cron_trigger, mock_scheduler_cls, mock_get_processor, mock_config_cls):
         """Test main execution with CRON expressions"""
         # Setup mocks
-        mock_config = MagicMock()
+        mock_config = _config_mock()
         mock_config_cls.return_value = mock_config
         mock_config.validate_env_vars.return_value = True
         mock_config.get_env_var.return_value = "CRON"
@@ -113,7 +133,7 @@ class TestProcessMain(unittest.TestCase):
     def test_main_simple_cron_seconds(self, mock_logger, mock_sleep, mock_schedule, mock_get_processor, mock_config_cls):
         """Test main execution with simple cron (seconds)"""
         # Setup mocks
-        mock_config = MagicMock()
+        mock_config = _config_mock()
         mock_config_cls.return_value = mock_config
         mock_config.validate_env_vars.return_value = True
         mock_config.get_env_var.side_effect = lambda key: {
@@ -145,7 +165,7 @@ class TestProcessMain(unittest.TestCase):
     def test_main_simple_cron_days_run_at(self, mock_logger, mock_sleep, mock_schedule, mock_get_processor, mock_config_cls):
         """Test main execution with simple cron (days) and RUN_AT"""
         # Setup mocks
-        mock_config = MagicMock()
+        mock_config = _config_mock()
         mock_config_cls.return_value = mock_config
         mock_config.validate_env_vars.return_value = True
         mock_config.get_env_var.side_effect = lambda key: {
@@ -175,7 +195,7 @@ class TestProcessMain(unittest.TestCase):
     def test_main_invalid_env_vars(self, mock_logger, mock_get_processor, mock_config_cls):
         """Test main execution with invalid env vars"""
         # Setup mocks
-        mock_config = MagicMock()
+        mock_config = _config_mock()
         mock_config_cls.return_value = mock_config
         mock_config.validate_env_vars.return_value = False
         
@@ -191,7 +211,7 @@ class TestProcessMain(unittest.TestCase):
     def test_main_keyboard_interrupt(self, mock_config_cls):
         """Test main execution handling KeyboardInterrupt"""
         # Setup mocks
-        mock_config = MagicMock()
+        mock_config = _config_mock()
         mock_config_cls.return_value = mock_config
         mock_config.validate_env_vars.side_effect = KeyboardInterrupt
         
@@ -206,7 +226,7 @@ class TestProcessMain(unittest.TestCase):
     def test_main_unsupported_cron_unit(self, mock_sleep, mock_schedule, mock_get_processor, mock_config_cls):
         """Test main execution with unsupported cron unit"""
          # Setup mocks
-        mock_config = MagicMock()
+        mock_config = _config_mock()
         mock_config_cls.return_value = mock_config
         mock_config.validate_env_vars.return_value = True
         mock_config.get_env_var.side_effect = lambda key: {
@@ -229,7 +249,7 @@ class TestProcessMain(unittest.TestCase):
         units = ["minutes", "hours", "weeks"]
         
         for unit in units:
-            mock_config = MagicMock()
+            mock_config = _config_mock()
             mock_config_cls.return_value = mock_config
             mock_config.validate_env_vars.return_value = True
             mock_config.get_env_var.side_effect = lambda key, u=unit: {
@@ -256,7 +276,7 @@ class TestProcessMain(unittest.TestCase):
     @patch('process.sleep')
     def test_main_simple_cron_days_no_run_at(self, mock_sleep, mock_schedule, mock_get_processor, mock_config_cls):
         """Test simple cron days without RUN_AT"""
-        mock_config = MagicMock()
+        mock_config = _config_mock()
         mock_config_cls.return_value = mock_config
         mock_config.validate_env_vars.return_value = True
         mock_config.get_env_var.side_effect = lambda key: {
@@ -284,7 +304,7 @@ class TestProcessMain(unittest.TestCase):
     def test_main_load_toml_exception(self, mock_logger, mock_get_adapter, mock_get_processor, mock_config_cls):
         """Test main execution when load_toml raises exception"""
         # Setup mocks
-        mock_config = MagicMock()
+        mock_config = _config_mock()
         mock_config_cls.return_value = mock_config
         
         # Simulate load_toml failing
@@ -346,7 +366,7 @@ class TestProcessMain(unittest.TestCase):
     def test_main_message_execution_sqs(self, mock_logger, mock_get_adapter, mock_get_processor, mock_config_cls):
         """Test main execution with SQS message processor"""
         # Setup mocks
-        mock_config = MagicMock()
+        mock_config = _config_mock()
         mock_config_cls.return_value = mock_config
         mock_config.validate_env_vars.return_value = True
         mock_config.get_env_var.side_effect = lambda key: {
@@ -380,7 +400,7 @@ class TestProcessMain(unittest.TestCase):
     def test_main_processor_returns_none(self, mock_logger, mock_get_processor, mock_config_cls):
         """Test main execution when get_service_processor returns None"""
         # Setup mocks
-        mock_config = MagicMock()
+        mock_config = _config_mock()
         mock_config_cls.return_value = mock_config
         mock_config.validate_env_vars.return_value = True
         mock_config.get_env_var.return_value = "CRON"
@@ -404,7 +424,7 @@ class TestProcessMain(unittest.TestCase):
     def test_main_cron_time_amount_non_numeric(self, mock_logger, mock_sleep, mock_schedule, mock_get_processor, mock_config_cls):
         """Test main execution with non-numeric CRON_TIME_AMOUNT"""
         # Setup mocks
-        mock_config = MagicMock()
+        mock_config = _config_mock()
         mock_config_cls.return_value = mock_config
         mock_config.validate_env_vars.return_value = True
         mock_config.get_env_var.side_effect = lambda key: {
@@ -428,7 +448,7 @@ class TestProcessMain(unittest.TestCase):
     def test_main_cron_time_amount_negative(self, mock_logger, mock_sleep, mock_schedule, mock_get_processor, mock_config_cls):
         """Test main execution with negative CRON_TIME_AMOUNT"""
         # Setup mocks
-        mock_config = MagicMock()
+        mock_config = _config_mock()
         mock_config_cls.return_value = mock_config
         mock_config.validate_env_vars.return_value = True
         mock_config.get_env_var.side_effect = lambda key: {
@@ -457,7 +477,7 @@ class TestProcessMain(unittest.TestCase):
     def test_main_cron_time_amount_scientific(self, mock_logger, mock_sleep, mock_schedule, mock_get_processor, mock_config_cls):
         """Test main execution with scientific notation CRON_TIME_AMOUNT"""
         # Setup mocks
-        mock_config = MagicMock()
+        mock_config = _config_mock()
         mock_config_cls.return_value = mock_config
         mock_config.validate_env_vars.return_value = True
         mock_config.get_env_var.side_effect = lambda key: {
@@ -486,7 +506,7 @@ class TestProcessMain(unittest.TestCase):
     def test_main_cron_run_at_invalid_format(self, mock_logger, mock_sleep, mock_schedule, mock_get_processor, mock_config_cls):
         """Test main execution with invalid CRON_RUN_AT format"""
         # Setup mocks
-        mock_config = MagicMock()
+        mock_config = _config_mock()
         mock_config_cls.return_value = mock_config
         mock_config.validate_env_vars.return_value = True
         mock_config.get_env_var.side_effect = lambda key: {
@@ -515,7 +535,7 @@ class TestProcessMain(unittest.TestCase):
     def test_main_multiple_cron_expressions(self, mock_logger, mock_cron_trigger, mock_scheduler_cls, mock_get_processor, mock_config_cls):
         """Test main execution with multiple cron expressions"""
         # Setup mocks
-        mock_config = MagicMock()
+        mock_config = _config_mock()
         mock_config_cls.return_value = mock_config
         mock_config.validate_env_vars.return_value = True
         mock_config.get_env_var.return_value = "CRON"

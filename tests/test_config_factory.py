@@ -862,5 +862,161 @@ class TestConfigFactory(unittest.TestCase):
         self.assertEqual(self.config.cron_jobs, [])
 
 
+def _observability_extras_installed():
+    """True when rococo was installed with its observability extras."""
+    try:
+        import rococo.observability  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
+OBSERVABILITY_EXTRAS = _observability_extras_installed()
+
+
+class TestObservabilityConfig(unittest.TestCase):
+    """Test cases for Config._setup_observability_params"""
+
+    def setUp(self):
+        self.config = Config()
+
+    def _mock_env_var(self, env_dict):
+        def get_env_var_side_effect(key):
+            return env_dict.get(key)
+        return get_env_var_side_effect
+
+    def test_defaults_are_disabled(self):
+        """Test a fresh Config has observability off — existing services are unaffected"""
+        self.assertFalse(self.config.observability_enabled)
+        self.assertIsNone(self.config.observability_provider)
+        self.assertEqual(self.config.observability_config, {})
+
+    def test_no_provider_env_var_keeps_observability_disabled(self):
+        """Test observability stays disabled when OBSERVABILITY_PROVIDER is unset"""
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var({}))
+        self.config._setup_observability_params()
+        self.assertFalse(self.config.observability_enabled)
+        self.assertIsNone(self.config.observability_provider)
+        self.assertEqual(self.config.observability_config, {})
+
+    def test_unknown_provider_keeps_observability_disabled(self):
+        """Test an unrecognized provider name disables observability instead of raising"""
+        env_vars = {'OBSERVABILITY_PROVIDER': 'not_a_provider'}
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        self.config._setup_observability_params()
+        self.assertFalse(self.config.observability_enabled)
+
+    @unittest.skipUnless(OBSERVABILITY_EXTRAS,
+                         "rococo observability extras are not installed")
+    def test_missing_required_provider_keys_keeps_observability_disabled(self):
+        """Test a provider with missing required env vars is not enabled"""
+        env_vars = {
+            'OBSERVABILITY_PROVIDER': 'open_observe',
+            'OO_BASE_URL': 'http://observe:5080',
+            # OO_ORG_ID and OO_INGESTION_TOKEN deliberately absent
+            'SERVICE_NAME': 'my-service',
+        }
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        self.config._setup_observability_params()
+        self.assertFalse(self.config.observability_enabled)
+
+    @unittest.skipUnless(OBSERVABILITY_EXTRAS,
+                         "rococo observability extras are not installed")
+    def test_missing_service_name_keeps_observability_disabled(self):
+        """Test SERVICE_NAME is required even when all provider keys are present"""
+        env_vars = {
+            'OBSERVABILITY_PROVIDER': 'open_observe',
+            'OO_BASE_URL': 'http://observe:5080',
+            'OO_ORG_ID': 'org',
+            'OO_INGESTION_TOKEN': 'token',
+        }
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        self.config._setup_observability_params()
+        self.assertFalse(self.config.observability_enabled)
+
+    @unittest.skipUnless(OBSERVABILITY_EXTRAS,
+                         "rococo observability extras are not installed")
+    def test_fully_configured_provider_is_enabled(self):
+        """Test observability is enabled and the provider config is built from env vars"""
+        env_vars = {
+            'OBSERVABILITY_PROVIDER': 'open_observe',
+            'OO_BASE_URL': 'http://observe:5080',
+            'OO_ORG_ID': 'org',
+            'OO_INGESTION_TOKEN': 'token',
+            'SERVICE_NAME': 'my-service',
+            'APP_ENV': 'staging',
+        }
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        self.config._setup_observability_params()
+
+        self.assertTrue(self.config.observability_enabled)
+        self.assertEqual(self.config.observability_provider, 'open_observe')
+        self.assertEqual(self.config.observability_config, {
+            'OO_BASE_URL': 'http://observe:5080',
+            'OO_ORG_ID': 'org',
+            'OO_INGESTION_TOKEN': 'token',
+            'SERVICE_NAME': 'my-service',
+            'APP_ENV': 'staging',
+        })
+
+    @unittest.skipUnless(OBSERVABILITY_EXTRAS,
+                         "rococo observability extras are not installed")
+    def test_app_env_defaults_to_production(self):
+        """Test APP_ENV defaults to production when unset"""
+        env_vars = {
+            'OBSERVABILITY_PROVIDER': 'open_observe',
+            'OO_BASE_URL': 'http://observe:5080',
+            'OO_ORG_ID': 'org',
+            'OO_INGESTION_TOKEN': 'token',
+            'SERVICE_NAME': 'my-service',
+        }
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        self.config._setup_observability_params()
+        self.assertEqual(self.config.observability_config['APP_ENV'], 'production')
+
+    @unittest.skipUnless(OBSERVABILITY_EXTRAS,
+                         "rococo observability extras are not installed")
+    def test_config_keys_match_provider_expectations(self):
+        """Test the built config uses the exact keys the provider class reads"""
+        from rococo.observability import get_observability_provider
+
+        env_vars = {
+            'OBSERVABILITY_PROVIDER': 'open_observe',
+            'OO_BASE_URL': 'http://observe:5080',
+            'OO_ORG_ID': 'org',
+            'OO_INGESTION_TOKEN': 'token',
+            'SERVICE_NAME': 'my-service',
+        }
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        self.config._setup_observability_params()
+
+        provider = get_observability_provider('open_observe')(**self.config.observability_config)
+        self.assertEqual(provider.service_name, 'my-service')
+        self.assertEqual(provider.oo_base_url, 'http://observe:5080')
+        self.assertEqual(provider.oo_org_id, 'org')
+        self.assertEqual(provider.oo_ingestion_token, 'token')
+
+    def test_validate_env_vars_runs_observability_setup(self):
+        """Test validate_env_vars wires up observability without failing validation"""
+        env_vars = {
+            'EXECUTION_TYPE': 'MESSAGE',
+            'MESSAGING_TYPE': 'RabbitMqConnection',
+            'PROCESSOR_TYPE': 'TestProcessor',
+            'PROCESSOR_MODULE': 'test.module',
+            'RABBITMQ_HOST': 'host',
+            'RABBITMQ_PORT': '5672',
+            'RABBITMQ_USER': 'user',
+            'RABBITMQ_PASSWORD': 'password',
+            'RABBITMQ_VIRTUAL_HOST': '/',
+            'QUEUE_NAME_PREFIX': 'prefix_',
+            'TestProcessor_QUEUE_NAME': 'queue',
+            'NUMBER_OF_THREADS': '1',
+        }
+        self.config.get_env_var = MagicMock(side_effect=self._mock_env_var(env_vars))
+        result = self.config.validate_env_vars()
+        self.assertTrue(result)
+        self.assertFalse(self.config.observability_enabled)
+
+
 if __name__ == '__main__':
     unittest.main()
